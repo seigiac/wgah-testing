@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Volleyball Stat Tracker</title>
+<style>
+:root{--bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;--text:#e8e8e8;--text2:#999;--text3:#555;--border:#3a3a3a;--border2:#2a2a2a;--radius:8px;--radius-lg:12px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+/* Type scale (mobile defaults) */
+--fs-h1:36px;--fs-h2:22px;--fs-h3:16px;
+--fs-body-l:15px;--fs-body-m:13px;--fs-body-s:11px;--fs-body-xs:10px;
+--fs-eyebrow:11px;--ls-eyebrow:.07em;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);background:var(--bg);min-height:100vh;padding-bottom:40px}
+.app{padding:40px;max-width:680px;margin:0 auto}
+.hidden{display:none!important}
+
+/* Setup */
+.setup-screen{padding:8px 0}
+.setup-screen h3{font-size:var(--fs-h3);font-weight:500;margin-bottom:12px}
+.setup-screen p{font-size:var(--fs-body-s);color:var(--text2);margin-bottom:8px}
+.setup-screen input{width:100%;margin-bottom:8px;padding:9px 10px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:var(--fs-body-m);font-family:var(--font);outline:none}
+.setup-screen input:focus{border-color:#378ADD}
+.serve-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.serve-pick button{padding:12px 6px;border-radius:var(--radius);cursor:pointer;font-size:var(--fs-body-m);font-family:var(--font)}
+.pick-my{border:0.5px solid #85B7EB;color:#A8D4FF;background:#0C2440}
+.pick-opp{border:0.5px solid #E8A598;color:#FFBDB4;background:#3A1208}
+.pick-my:active{background:#0e2e52}
+.pick-opp:active{background:#4a1a0a}
+
+/* Scoreboard */
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:40px}
+.score-side{background:var(--bg2);border-radius:var(--radius-lg);padding:10px 12px;text-align:center}
+.score-side .team-name{font-size:var(--fs-body-xs);color:var(--text2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-side .score-num{font-size:var(--fs-h1);font-weight:500;line-height:1}
+.score-side .run-indicator{font-size:var(--fs-body-xs);margin-top:4px;height:16px;color:#7EB8FF}
+.opp-side .run-indicator{color:#FF9A7E}
+.serving-badge{display:inline-block;font-size:var(--fs-body-xs);margin-top:4px;background:#378ADD;color:#fff;border-radius:20px;padding:1px 8px;line-height:1.6}
+.opp-side .serving-badge{background:#D85A30}
+.vs{font-size:var(--fs-body-m);color:var(--text3);text-align:center}
+.hint{font-size:var(--fs-body-xs);color:var(--text3);text-align:center;margin-bottom:8px}
+
+/* Two-column categories */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:40px}
+.col-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding:4px 0 6px;border-bottom:1.5px solid #378ADD;margin-bottom:6px;color:#7EB8FF}
+.col-label.opp{border-color:#D85A30;color:#FF9A7E}
+.cat-btn{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 10px;margin-bottom:5px;cursor:pointer;text-align:left;min-height:44px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:var(--font)}
+.cat-btn.pressing{background:var(--bg3)}
+.cat-btn.removing{background:#3a1208}
+.cat-btn .cat-name{font-size:var(--fs-body-s);color:var(--text);flex:1}
+.cat-btn .cat-name.muted{color:var(--text2)}
+.cat-btn .cat-count{font-size:var(--fs-body-l);font-weight:500;min-width:24px;text-align:right;color:#7EB8FF}
+.opp-col .cat-btn .cat-count{color:#FF9A7E}
+.cat-btn.cat-sub{max-width:75%;margin-left:0}
+.cat-btn.cat-sub-opp{max-width:75%;margin-left:0}
+.cat-static{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;margin-bottom:5px;min-height:44px}
+.cat-static .cat-name{font-size:var(--fs-body-s);color:var(--text);flex:1}
+.cat-static .cat-count{font-size:var(--fs-body-l);font-weight:500;min-width:24px;text-align:right;color:var(--text2)}
+
+/* Serve run chips */
+.serve-section{margin-bottom:40px}
+.serve-section-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:6px}
+.serve-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.serve-team-label{font-size:var(--fs-body-xs);color:var(--text2);margin-bottom:4px}
+.serve-chips{display:flex;flex-wrap:wrap;gap:4px;min-height:24px}
+.chip.first-server{box-shadow:0 0 0 2px #fff}
+.rtl-cell.first-server{box-shadow:0 0 0 2px #fff}
+.rtl-cell.blank.first-server{box-shadow:0 0 0 2px #aaa}
+.chip{background:#0C2440;color:#A8D4FF;border-radius:20px;padding:2px 10px;font-size:var(--fs-body-xs);font-weight:500}
+.chip.opp{background:#3A1208;color:#FFBDB4}
+.chip.current{background:#378ADD;color:#fff}
+.chip.current.opp{background:#D85A30;color:#fff}
+
+/* Advanced stats */
+.adv-section{margin-bottom:40px}
+.adv-section-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:6px}
+.adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.adv-col-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding:4px 0 6px;border-bottom:1.5px solid #378ADD;margin-bottom:8px;color:#7EB8FF}
+.adv-col-label.opp{border-color:#D85A30;color:#FF9A7E}
+.adv-stat{margin-bottom:8px}
+.adv-stat-label{font-size:var(--fs-body-s);color:var(--text2);margin-bottom:2px}
+.adv-stat-value{font-size:20px;font-weight:500;color:var(--text);line-height:1}
+.adv-stat-value.pct{color:#7EB8FF}
+.opp-col-adv .adv-stat-value.pct{color:#FF9A7E}
+.adv-stat-sub{font-size:var(--fs-body-xs);color:var(--text2);margin-top:1px}
+
+/* Visuals */
+.vis-block{margin-bottom:40px}
+.vis-main-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:8px;margin-top:4px}
+.vis-sub-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:7px}
+.vis-divider{border:none;border-top:0.5px solid var(--border2);margin:40px 0}
+.comp-vis-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vis-comp-err-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.comp-col-head{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding-bottom:5px;margin-bottom:7px}
+.comp-col-head.my{border-bottom:1.5px solid #378ADD;color:#7EB8FF}
+.comp-col-head.opp{border-bottom:1.5px solid #D85A30;color:#FF9A7E}
+.comp-bar-row{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.comp-bar-lbl{font-size:var(--fs-body-xs);color:var(--text2);width:60px;text-align:right;flex-shrink:0}
+.comp-bar-outer{flex:1;background:var(--bg3);border-radius:3px;height:12px;overflow:hidden}
+.comp-bar-fill{height:100%;border-radius:3px}
+.comp-bar-val{font-size:var(--fs-body-s);font-weight:500;min-width:18px}
+
+/* Run timeline */
+.run-tl-team{margin-bottom:10px}
+.run-tl-label{font-size:var(--fs-body-s);font-weight:500;margin-bottom:5px}
+.run-tl-label.my{color:#7EB8FF}
+.run-tl-label.opp{color:#FF9A7E}
+.run-tl-grid{display:flex;flex-wrap:wrap;gap:3px}
+.rtl-cell{width:20px;height:20px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;line-height:1}
+.rtl-cell.pt-my{background:#378ADD;color:#fff}
+.rtl-cell.pt-opp{background:#D85A30;color:#fff}
+.rtl-cell.blank{background:var(--bg3)}
+
+/* Donut — tracker live view keeps toggle */
+.donut-team-toggle{display:flex;gap:6px;margin-bottom:8px}
+.donut-team-toggle button{padding:4px 10px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:11px;color:var(--text2);font-family:var(--font)}
+.donut-team-toggle button.act-my{background:#0C2440;border-color:#85B7EB;color:#A8D4FF}
+.donut-team-toggle button.act-opp{background:#3A1208;border-color:#E8A598;color:#FFBDB4}
+.donut-wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.donut-leg{flex:1;min-width:130px}
+.donut-leg-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:11px}
+.donut-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.donut-leg-lbl{flex:1;color:var(--text2)}
+.donut-leg-val{font-weight:500;color:var(--text)}
+/* 2-col donut layout for viewer */
+.donut2-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.donut2-col-head{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;padding-bottom:5px;margin-bottom:7px}
+.donut2-col-head.my{border-bottom:1.5px solid #378ADD;color:#7EB8FF}
+.donut2-col-head.opp{border-bottom:1.5px solid #D85A30;color:#FF9A7E}
+.donut2-wrap{display:flex;flex-direction:column;gap:6px;align-items:center}
+.donut2-leg-row{display:flex;align-items:center;gap:4px;font-size:var(--fs-body-xs);width:100%}
+.donut2-leg-row .donut-dot{flex-shrink:0}
+.donut2-leg-lbl{flex:1;color:var(--text2);font-size:var(--fs-body-xs)}
+.donut2-leg-val{font-weight:500;color:var(--text);font-size:var(--fs-body-xs)}
+/* Error breakdown butterfly chart */
+.err-butterfly{width:100%}
+.err-bf-header{display:grid;grid-template-columns:1fr 90px 1fr;gap:4px;margin-bottom:4px}
+.err-bf-head-left{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:#7EB8FF;text-align:right}
+.err-bf-head-center{font-size:var(--fs-eyebrow);color:var(--text3);text-align:center}
+.err-bf-head-right{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:#FF9A7E;text-align:left}
+.err-bf-row{display:grid;grid-template-columns:1fr 90px 1fr;gap:4px;align-items:center;margin-bottom:3px}
+.err-bf-bar-left{display:flex;justify-content:flex-end;align-items:center;gap:4px}
+.err-bf-bar-right{display:flex;justify-content:flex-start;align-items:center;gap:4px}
+.err-bf-label{font-size:var(--fs-body-xs);color:var(--text2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.err-bf-fill{height:12px;border-radius:2px;min-width:1px;transition:width .3s}
+.err-bf-val{font-size:var(--fs-body-xs);font-weight:500;color:var(--text2);flex-shrink:0;min-width:12px}
+.set-subsection{margin-bottom:14px}
+.set-subsection-label{font-size:var(--fs-eyebrow);font-weight:600;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text3);margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid var(--border2)}
+/* Full match card */
+.set-card.full-match-card{border-color:rgba(55,138,221,0.3);background:#0C2440}
+.set-card.full-match-card .set-card-num{color:#7EB8FF}
+
+/* Actions */
+.actions{display:flex;gap:6px;margin-bottom:10px}
+.actions button{flex:1;padding:10px 6px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);cursor:pointer;font-size:var(--fs-body-s);color:var(--text);font-family:var(--font)}
+.actions button:active{background:var(--bg3)}
+.btn-save{border-color:#378ADD!important;color:#7EB8FF!important}
+.btn-reset{border-color:#E24B4A!important;color:#FF8080!important}
+.inline-confirm{background:var(--bg2);border-radius:var(--radius);padding:10px;margin-bottom:8px;border:0.5px solid var(--border)}
+.inline-confirm p{font-size:var(--fs-body-s);color:var(--text2);margin-bottom:8px}
+.inline-confirm-btns{display:flex;gap:6px}
+.inline-confirm-btns button{flex:1;padding:9px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:var(--fs-body-s);color:var(--text);font-family:var(--font)}
+.ic-yes{border-color:#E24B4A!important;color:#FF8080!important;background:#3a1208!important}
+.ic-no{color:var(--text2)}
+.toast{background:var(--bg2);border-radius:var(--radius);padding:6px 12px;font-size:var(--fs-body-s);color:var(--text2);text-align:center;margin-bottom:8px;border:0.5px solid var(--border)}
+.saved-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.saved-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2)}
+.btn-new-match{font-size:var(--fs-body-xs);padding:5px 10px;border-radius:var(--radius);border:0.5px solid #E24B4A;background:var(--bg);color:#FF8080;cursor:pointer;font-family:var(--font)}
+.set-card{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:5px;cursor:pointer;border:0.5px solid transparent;display:flex;justify-content:space-between;align-items:center}
+.set-card:active{border-color:var(--border)}
+.set-card-num{font-size:var(--fs-body-s);font-weight:500;margin-bottom:1px}
+.set-card-score{font-size:var(--fs-body-xs);color:var(--text2)}
+.set-card-arrow{font-size:18px;color:var(--text3)}
+
+/* ── Viewer ── */
+.viewer-back{display:flex;align-items:center;gap:4px;font-size:var(--fs-body-m);color:#7EB8FF;cursor:pointer;background:none;border:none;padding:0;margin-bottom:12px;font-family:var(--font)}
+#viewer-body{display:grid;grid-template-columns:1fr;gap:24px}
+.viewer-title{font-size:var(--fs-h2);font-weight:500;margin-bottom:2px}
+.viewer-score-line{font-size:var(--fs-body-m);color:var(--text2);margin-bottom:14px;text-align:center}
+.viewer-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.viewer-col-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding:4px 0 6px;margin-bottom:6px}
+.viewer-col-label.my{border-bottom:1.5px solid #378ADD;color:#7EB8FF}
+.viewer-col-label.opp{border-bottom:1.5px solid #D85A30;color:#FF9A7E}
+.viewer-row{display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-body-s);padding:5px 0;border-bottom:0.5px solid var(--border2)}
+.viewer-row:last-child{border-bottom:none}
+.viewer-row .vr-name{color:var(--text2)}
+.viewer-row .vr-val{font-weight:500;color:var(--text)}
+.viewer-row.vr-highlight .vr-name{color:var(--text)}
+.viewer-row.vr-highlight .vr-val{color:#7EB8FF}
+.viewer-row.vr-highlight-opp .vr-val{color:#FF9A7E}
+.viewer-row.vr-collapsible{cursor:pointer;user-select:none;-webkit-user-select:none}
+.viewer-row.vr-collapsible .vr-name::after{content:' ›';font-size:12px;color:var(--text3);transition:transform .2s}
+.viewer-row.vr-collapsible.expanded .vr-name::after{content:' ⌄'}
+.viewer-section-title{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin:12px 0 6px}
+.viewer-adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.viewer-adv-col{}
+.viewer-adv-stat{margin-bottom:8px}
+.viewer-adv-label{font-size:var(--fs-body-xs);color:var(--text2);margin-bottom:1px}
+.viewer-adv-value{font-size:var(--fs-h3);font-weight:500;color:var(--text)}
+.viewer-adv-sub{font-size:var(--fs-body-xs);color:var(--text2);margin-top:1px}
+
+/* Butterfly stats table (3-col: my val | label | opp val) */
+.bt-table{width:100%;border-collapse:collapse}
+.bt-row{display:grid;grid-template-columns:1fr 1.6fr 1fr;align-items:center;padding:4px 0;border-bottom:0.5px solid var(--border2)}
+.bt-row:last-child{border-bottom:none}
+.bt-my{text-align:right;font-size:var(--fs-body-l);font-weight:500;color:var(--text);padding-right:8px}
+.bt-lbl{text-align:center;font-size:var(--fs-body-s);color:var(--text2)}
+.bt-opp{text-align:left;font-size:var(--fs-body-l);font-weight:500;color:var(--text);padding-left:8px}
+.bt-header-row{display:grid;grid-template-columns:1fr 1.6fr 1fr;padding:0 0 5px;margin-bottom:2px;border-bottom:0.5px solid var(--border)}
+.bt-hd-my{text-align:right;font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:#7EB8FF;padding-right:8px}
+.bt-hd-lbl{text-align:center;font-size:var(--fs-eyebrow);color:var(--text3)}
+.bt-hd-opp{text-align:left;font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:#FF9A7E;padding-left:8px}
+.bt-row.bt-highlight .bt-my{color:#7EB8FF}
+.bt-row.bt-highlight .bt-opp{color:#FF9A7E}
+.bt-row.bt-collapsible{cursor:pointer;user-select:none;-webkit-user-select:none}
+.bt-row.bt-collapsible .bt-lbl::after{content:' ›';color:var(--text3)}
+.bt-row.bt-collapsible.expanded .bt-lbl::after{content:' ⌄'}
+.bt-row.bt-sub .bt-my{font-size:var(--fs-body-s);font-weight:400;color:var(--text2)}
+.bt-row.bt-sub .bt-lbl{font-size:var(--fs-body-xs)}
+.bt-row.bt-sub .bt-opp{font-size:var(--fs-body-s);font-weight:400;color:var(--text2)}
+.bt-row.bt-total .bt-my{font-weight:700}
+.bt-row.bt-total .bt-opp{font-weight:700}
+.bt-row.bt-total .bt-lbl{font-size:var(--fs-body-s);color:var(--text)}
+/* Adv stat sub-label */
+.bt-adv-sub{font-size:var(--fs-body-xs);color:var(--text3);display:block;margin-top:1px}
+.bt-adv-my{text-align:right;padding-right:8px}
+.bt-adv-opp{text-align:left;padding-left:8px}
+.bt-adv-val{font-size:var(--fs-body-l);font-weight:500;color:var(--text)}
+.bt-adv-val.pct-my{color:#7EB8FF}
+.bt-adv-val.pct-opp{color:#FF9A7E}
+/* Centered STATS section title spanning both columns */
+.stats-section-title{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);text-align:center;margin-bottom:16px}
+/* ── Presentation screen ── */
+#screen-present{
+  position:fixed;inset:0;z-index:500;
+  background:#0e0e0e;
+  display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+}
+#screen-present.hidden{display:none!important}
+#pres-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 32px;border-bottom:0.5px solid #222;
+  flex-shrink:0;
+}
+#pres-meta{font-size:13px;color:#555;letter-spacing:.05em;text-transform:uppercase}
+#pres-exit{
+  font-size:12px;padding:6px 14px;border-radius:6px;
+  border:0.5px solid #333;background:transparent;color:#666;
+  cursor:pointer;font-family:var(--font);
+}
+#pres-exit:hover{color:#e8e8e8;border-color:#555}
+#pres-top{
+  display:grid;grid-template-columns:auto 1fr;
+  gap:0;align-items:center;
+  padding:20px 32px;border-bottom:0.5px solid #1a1a1a;
+  flex-shrink:0;
+}
+#pres-scoreboard{
+  display:flex;align-items:center;gap:0;
+  padding-right:32px;border-right:0.5px solid #222;
+}
+.pres-side{text-align:center;padding:0 28px}
+.pres-team-name{font-size:13px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.pres-score{font-size:80px;font-weight:500;line-height:1;color:#e8e8e8}
+#pres-side-my .pres-score{color:#378ADD}
+#pres-side-opp .pres-score{color:#D85A30}
+#pres-vs{font-size:32px;color:#333;padding:0 8px}
+#pres-comp{padding-left:32px;min-width:0}
+.pres-section-label{font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+#pres-mid{
+  padding:20px 32px;border-bottom:0.5px solid #1a1a1a;
+  flex-shrink:0;
+}
+#pres-timeline .run-tl-label{font-size:13px}
+#pres-timeline .rtl-cell{width:24px;height:24px;font-size:10px}
+#pres-bot{
+  padding:20px 32px 24px;
+  flex-shrink:0;
+}
+#pres-mom-wrap{position:relative;width:100%}
+#pres-momentum{display:block;width:100%}
+/* ── end presentation ── */
+#tracker-sticky-header{position:sticky;top:0;z-index:100;background:var(--bg);padding:20px 0 12px;margin-bottom:40px;border-bottom:0.5px solid var(--border2)}
+/* Viewer sticky header */
+.nav-arrow{background:var(--bg2);border:0.5px solid var(--border);color:var(--text2);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-family:var(--font);flex-shrink:0;transition:opacity .15s}
+.nav-arrow:hover{color:var(--text);border-color:var(--text2)}
+.nav-arrow:disabled{opacity:0.25;cursor:default;pointer-events:none}
+#viewer-sticky-header{position:sticky;top:0;z-index:100;background:var(--bg);padding:20px 0 12px;margin-bottom:40px;border-bottom:0.5px solid var(--border2)}
+@media(min-width:900px){
+  :root{
+    --fs-h1:56px;--fs-h2:32px;--fs-h3:24px;
+    --fs-body-l:18px;--fs-body-m:16px;--fs-body-s:14px;--fs-body-xs:12px;
+    --fs-eyebrow:16px;--ls-eyebrow:1px;
+  }
+  body{padding-bottom:0}
+  .app{max-width:1400px;padding:40px}
+  /* Landing page: extra space before "Who serves first?" */
+  #inp-opp{margin-bottom:24px}
+  #screen-setup{max-width:420px;margin:60px auto}
+  .scoreboard{max-width:480px;margin:0 auto 40px}
+  /* Row 1: stat buttons + advanced stats side by side */
+  #tracker-row1{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;margin-bottom:40px}
+  /* Row 2: visuals full width */
+  #tracker-row2{width:100%}
+  #col-visuals{width:100%}
+  .cat-btn{min-height:36px;padding:5px 8px}
+  .cat-static{min-height:36px;padding:5px 8px}
+  .cat-btn .cat-count{font-size:var(--fs-body-l)}
+  .adv-stat-value{font-size:17px}
+  .adv-section{margin-bottom:0}
+  .adv-section-label{margin-bottom:8px}
+  .vis-main-label{margin-top:0}
+  #vis-section{margin-bottom:0}
+  /* Team name subtitles smaller than section eyebrow titles */
+  .col-label,.bt-hd-my,.bt-hd-opp,.err-bf-head-left,.err-bf-head-right{font-size:var(--fs-body-xs);letter-spacing:.04em}
+  /* More gap between Point Composition and Error Breakdown */
+  .vis-comp-err-grid{gap:40px}
+  /* Space above saved sets area */
+  #saved-area{margin-top:40px}
+
+  /* Viewer wide layout — 2 rows: [stats+adv] then [visuals full-width] */
+  #viewer-body{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:40px;align-items:start}
+  #viewer-left{grid-column:1;grid-row:1}
+  #viewer-right{grid-column:2;grid-row:1}
+  #viewer-vis-col{grid-column:1 / -1;grid-row:2}
+
+  /* Visuals: 4 stacked full-width rows */
+  #v-vis-row-comp,#v-vis-row-tl,#v-vis-row-mid,#v-vis-row-bot{width:100%}
+  #v-vis-row-comp .vis-block,#v-vis-row-tl .vis-block{margin-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══════════════ Setup ══════════════ -->
+<div id="screen-setup" class="setup-screen">
+  <h3>Set up match</h3>
+  <input id="inp-my" placeholder="My team name" maxlength="24" oninput="updateServeButtons()">
+  <input id="inp-opp" placeholder="Opponent name" maxlength="24" oninput="updateServeButtons()">
+  <p>Who serves first?</p>
+  <div class="serve-pick">
+    <button class="pick-my" id="pick-my-btn" onclick="startMatch('my')">My team</button>
+    <button class="pick-opp" id="pick-opp-btn" onclick="startMatch('opp')">Opponent</button>
+  </div>
+
+  <div style="border-top:0.5px solid var(--border2);margin:20px 0 16px"></div>
+  <p style="font-size:var(--fs-body-s);color:var(--text2);margin-bottom:8px">Or import a previous match for analysis:</p>
+  <textarea id="setup-import-input" rows="5" style="width:100%;padding:8px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg);color:var(--text);font-size:11px;font-family:monospace;resize:vertical;outline:none;margin-bottom:6px" placeholder="Paste one set per line (TSV format from Copy plain text)…"></textarea>
+  <p id="setup-import-error" style="font-size:11px;color:#FF8080;margin-bottom:8px;display:none"></p>
+  <button onclick="importMatch()" style="width:100%;padding:10px;border-radius:var(--radius);border:0.5px solid #378ADD;background:#0C2440;color:#7EB8FF;cursor:pointer;font-size:var(--fs-body-s);font-family:var(--font)">Import match</button>
+</div>
+
+<!-- ══════════════ Tracker ══════════════ -->
+<div id="screen-tracker" class="hidden">
+  <div id="tracker-sticky-header">
+    <div class="scoreboard">
+      <div class="score-side" id="my-score-side">
+        <div class="team-name" id="lbl-my">My Team</div>
+        <div class="score-num" id="sc-my">0</div>
+        <div id="my-serve-badge" class="serving-badge hidden">serving</div>
+        <div class="run-indicator" id="run-my"></div>
+      </div>
+      <div class="vs">vs</div>
+      <div class="score-side opp-side" id="opp-score-side">
+        <div class="team-name" id="lbl-opp">Opponent</div>
+        <div class="score-num" id="sc-opp">0</div>
+        <div id="opp-serve-badge" class="serving-badge hidden">serving</div>
+        <div class="run-indicator" id="run-opp"></div>
+      </div>
+    </div>
+    <div class="hint">Tap the scoring team's column &nbsp;·&nbsp; Hold 600ms to remove</div>
+  </div>
+
+  <div id="tracker-body">
+
+  <!-- Centered STATS title spanning both columns -->
+  <div class="stats-section-title">Stats</div>
+
+  <!-- Row 1: Stat buttons (left) + Advanced stats butterfly (right) -->
+  <div id="tracker-row1">
+  <div id="col-left">
+  <div class="cols">
+    <div>
+      <div class="col-label" id="collbl-my">My Team</div>
+      <div class="cat-btn" data-team="my" data-cat="attack"><span class="cat-name">Attack (kill)</span><span class="cat-count" id="v-my-attack">0</span></div>
+      <div class="cat-btn" data-team="my" data-cat="block"><span class="cat-name">Block</span><span class="cat-count" id="v-my-block">0</span></div>
+      <div class="cat-btn" data-team="my" data-cat="serve"><span class="cat-name">Serve (ace)</span><span class="cat-count" id="v-my-serve">0</span></div>
+      <div class="cat-static"><span class="cat-name">Opponent errors</span><span class="cat-count" id="v-my-errtotal">0</span></div>
+      <div class="cat-btn cat-sub" data-team="my" data-cat="atk-out"><span class="cat-name muted">Atk err — out</span><span class="cat-count" id="v-my-atk-out">0</span></div>
+      <div class="cat-btn cat-sub" data-team="my" data-cat="atk-net"><span class="cat-name muted">Atk err — net</span><span class="cat-count" id="v-my-atk-net">0</span></div>
+      <div class="cat-btn cat-sub" data-team="my" data-cat="srv-out"><span class="cat-name muted">Srv err — out</span><span class="cat-count" id="v-my-srv-out">0</span></div>
+      <div class="cat-btn cat-sub" data-team="my" data-cat="srv-net"><span class="cat-name muted">Srv err — net</span><span class="cat-count" id="v-my-srv-net">0</span></div>
+      <div class="cat-btn cat-sub" data-team="my" data-cat="other"><span class="cat-name muted">Other err</span><span class="cat-count" id="v-my-other">0</span></div>
+    </div>
+    <div class="opp-col">
+      <div class="col-label opp" id="collbl-opp">Opponent</div>
+      <div class="cat-btn" data-team="opp" data-cat="attack"><span class="cat-name">Attack (kill)</span><span class="cat-count" id="v-opp-attack">0</span></div>
+      <div class="cat-btn" data-team="opp" data-cat="block"><span class="cat-name">Block</span><span class="cat-count" id="v-opp-block">0</span></div>
+      <div class="cat-btn" data-team="opp" data-cat="serve"><span class="cat-name">Serve (ace)</span><span class="cat-count" id="v-opp-serve">0</span></div>
+      <div class="cat-static"><span class="cat-name">Opponent errors</span><span class="cat-count" id="v-opp-errtotal">0</span></div>
+      <div class="cat-btn cat-sub-opp" data-team="opp" data-cat="atk-out"><span class="cat-name muted">Atk err — out</span><span class="cat-count" id="v-opp-atk-out">0</span></div>
+      <div class="cat-btn cat-sub-opp" data-team="opp" data-cat="atk-net"><span class="cat-name muted">Atk err — net</span><span class="cat-count" id="v-opp-atk-net">0</span></div>
+      <div class="cat-btn cat-sub-opp" data-team="opp" data-cat="srv-out"><span class="cat-name muted">Srv err — out</span><span class="cat-count" id="v-opp-srv-out">0</span></div>
+      <div class="cat-btn cat-sub-opp" data-team="opp" data-cat="srv-net"><span class="cat-name muted">Srv err — net</span><span class="cat-count" id="v-opp-srv-net">0</span></div>
+      <div class="cat-btn cat-sub-opp" data-team="opp" data-cat="other"><span class="cat-name muted">Other err</span><span class="cat-count" id="v-opp-other">0</span></div>
+    </div>
+  </div>
+
+  <div class="serve-section">
+    <div class="serve-section-label">Serve run sequence</div>
+    <div class="serve-cols">
+      <div><div class="serve-team-label" id="srv-lbl-my">My team</div><div class="serve-chips" id="chips-my"></div></div>
+      <div><div class="serve-team-label" id="srv-lbl-opp">Opponent</div><div class="serve-chips" id="chips-opp"></div></div>
+    </div>
+  </div>
+
+  <div id="toast-area"></div>
+  <div id="reset-confirm" class="inline-confirm hidden">
+    <p>Reset all scores for this set?</p>
+    <div class="inline-confirm-btns">
+      <button class="ic-no" onclick="dismissConfirm()">Cancel</button>
+      <button class="ic-yes" onclick="executeReset()">Reset set</button>
+    </div>
+  </div>
+  <div id="newmatch-confirm" class="inline-confirm hidden">
+    <p>Clear all saved sets and start a new match? This cannot be undone.</p>
+    <div class="inline-confirm-btns">
+      <button class="ic-no" onclick="closeNewMatch()">Cancel</button>
+      <button class="ic-yes" onclick="confirmNewMatch()">Clear &amp; start new</button>
+    </div>
+  </div>
+  <div class="actions">
+    <button onclick="undoLast()">Undo</button>
+    <button class="btn-reset" onclick="askReset()">Reset set</button>
+    <button onclick="askImport()" style="border-color:#85B7EB;color:#7EB8FF">Import</button>
+    <button class="btn-save" onclick="saveSet()">Save set</button>
+  </div>
+  <div id="import-panel" class="inline-confirm hidden">
+    <p style="margin-bottom:6px">Paste a tab-separated set row (from Copy plain text):</p>
+    <textarea id="import-input" rows="3" style="width:100%;padding:8px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-family:var(--font);resize:vertical;outline:none;margin-bottom:8px" placeholder="Paste here…"></textarea>
+    <p id="import-error" style="font-size:11px;color:#FF8080;margin-bottom:8px;display:none"></p>
+    <div class="inline-confirm-btns">
+      <button class="ic-no" onclick="closeImport()">Cancel</button>
+      <button class="ic-yes" style="border-color:#378ADD!important;color:#7EB8FF!important;background:#0C2440!important" onclick="confirmImport()">Load into tracker</button>
+    </div>
+  </div>
+  <div id="saved-area" class="hidden">
+    <div class="saved-header">
+      <div class="saved-label">Saved sets</div>
+      <button class="btn-new-match" onclick="askNewMatch()">New match</button>
+    </div>
+    <div id="saved-list"></div>
+  </div>
+  </div><!-- /col-left -->
+
+  <!-- Advanced stats butterfly (right side of row 1) -->
+  <div id="col-adv">
+    <div id="adv-butterfly"></div>
+  </div>
+  </div><!-- /tracker-row1 -->
+
+  <!-- Row 2: Point Composition + Error Breakdown -->
+  <div id="tracker-row2">
+  <div id="col-visuals">
+  <div id="vis-section" class="hidden">
+
+    <div class="vis-block">
+      <div class="vis-comp-err-grid">
+        <div>
+          <div class="vis-sub-label">Point composition</div>
+          <div id="vis-comp-butterfly"></div>
+        </div>
+        <div>
+          <div class="vis-sub-label">Error breakdown</div>
+          <div id="vis-err-butterfly"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vis-divider"></div>
+    <div class="vis-block">
+      <div class="vis-sub-label">Serve run timeline</div>
+      <div id="vis-run-timeline"></div>
+    </div>
+
+    <div class="vis-divider"></div>
+    <div class="vis-block">
+      <div class="vis-sub-label">Momentum swing</div>
+      <div style="position:relative;width:100%;height:180px"><canvas id="vis-momentum"></canvas></div>
+    </div>
+  </div>
+  </div><!-- /col-visuals -->
+  </div><!-- /tracker-row2 -->
+
+  </div><!-- /tracker-body -->
+</div><!-- /screen-tracker -->
+
+<!-- ══════════════ Viewer ══════════════ -->
+<!--
+  All IDs here match exactly what openViewer() writes to:
+    viewer-title, viewer-score-line,
+    viewer-my-block, viewer-opp-block   (stat tally columns)
+    viewer-my-adv,  viewer-opp-adv     (advanced stat columns)
+    viewer-chips-my, viewer-chips-opp  (serve run chips)
+  The old v-prefixed IDs have been removed.
+-->
+<div id="screen-viewer" class="hidden">
+  <div id="viewer-sticky-header">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <button class="viewer-back" style="margin-bottom:0" onclick="closeViewer()">&#8249; Back to tracker</button>
+      <div style="display:flex;gap:6px">
+        <button id="btn-copy-set" class="hidden" onclick="copySetTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
+        <button id="btn-copy-match" class="hidden" onclick="copyMatchTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
+        <button id="btn-screenshot" class="hidden" onclick="captureScreenshot()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Save image</button>
+        <button id="btn-present" class="hidden" onclick="openPresent()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid #378ADD;background:#0C2440;color:#7EB8FF;cursor:pointer;font-family:var(--font)">Present ↗</button>
+      </div>
+    </div>
+
+    <!-- Title with arrow navigation -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px">
+      <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
+      <div class="viewer-title" id="viewer-title">Set 1</div>
+      <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
+    </div>
+    <div class="viewer-score-line" id="viewer-score-line"></div>
+
+    <!-- Scoreboard (read-only) -->
+    <div class="scoreboard">
+      <div class="score-side" id="viewer-score-my-side">
+        <div class="team-name" id="viewer-name-my">My Team</div>
+        <div class="score-num" id="viewer-sc-my">0</div>
+        <div style="height:16px"></div>
+      </div>
+      <div class="vs">vs</div>
+      <div class="score-side opp-side" id="viewer-score-opp-side">
+        <div class="team-name" id="viewer-name-opp">Opponent</div>
+        <div class="score-num" id="viewer-sc-opp">0</div>
+        <div style="height:16px"></div>
+      </div>
+    </div>
+  </div><!-- /viewer-sticky-header -->
+
+    <div id="viewer-body">
+    <!-- Centered STATS title spanning both columns -->
+    <div class="stats-section-title" style="grid-column:1/-1">Stats</div>
+
+    <!-- Left col: stat tallies + serve run sequence -->
+    <div id="viewer-left">
+
+      <!-- Stat tallies — 3-col butterfly table -->
+      <div id="viewer-stats-table"></div>
+
+      <!-- Serve run sequence -->
+      <div id="viewer-serve-section">
+      <div class="viewer-section-title">Serve run sequence</div>
+      <div class="serve-cols" style="margin-bottom:10px">
+        <div>
+          <div class="serve-team-label" id="viewer-run-lbl-my">My team</div>
+          <div class="serve-chips" id="viewer-chips-my"></div>
+        </div>
+        <div>
+          <div class="serve-team-label" id="viewer-run-lbl-opp">Opponent</div>
+          <div class="serve-chips" id="viewer-chips-opp"></div>
+        </div>
+      </div>
+      </div>
+    </div><!-- /viewer-left -->
+
+    <!-- Middle col: advanced stats — 3-col butterfly table -->
+    <div id="viewer-right">
+      <div id="viewer-adv-table"></div>
+    </div><!-- /viewer-right -->
+
+    <!-- Visuals row (full width on desktop) -->
+    <div id="viewer-vis-col">
+
+      <!-- Row 1: Point Composition + Error Breakdown side by side -->
+      <div id="v-vis-row-comp">
+        <div class="vis-block">
+          <div class="vis-comp-err-grid">
+            <div>
+              <div class="vis-sub-label">Point composition</div>
+              <div id="v-vis-comp-butterfly"></div>
+            </div>
+            <div>
+              <div class="vis-sub-label">Error breakdown</div>
+              <div id="v-vis-err-butterfly"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Serve Run Timeline -->
+      <div id="v-vis-row-tl">
+        <div class="vis-divider"></div>
+        <div class="vis-block">
+          <div class="vis-sub-label">Serve run timeline</div>
+          <div id="v-vis-run-timeline"></div>
+        </div>
+      </div>
+
+      <!-- Row 3: Momentum swing (full width, now bottom) -->
+      <div id="v-vis-row-mid">
+        <div class="vis-divider"></div>
+        <div class="vis-block">
+          <div class="vis-sub-label">Momentum swing</div>
+          <div id="v-vis-mom-wrap" style="position:relative;width:100%;height:180px"><canvas id="v-vis-momentum"></canvas></div>
+        </div>
+      </div>
+
+    </div><!-- /viewer-vis-col -->
+  </div><!-- /viewer-body -->
+</div><!-- /screen-viewer -->
+
+<!-- ══════════════ Presentation screen ══════════════ -->
+<div id="screen-present" class="hidden">
+  <!-- Header: set info + exit -->
+  <div id="pres-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="pres-nav-prev" onclick="presNavigate(-1)" class="nav-arrow" style="border-color:#333;color:#666">&#8592;</button>
+      <div id="pres-meta"></div>
+      <button id="pres-nav-next" onclick="presNavigate(1)" class="nav-arrow" style="border-color:#333;color:#666">&#8594;</button>
+    </div>
+    <button onclick="closePresent()" id="pres-exit">✕ Exit</button>
+  </div>
+
+  <!-- Top section: scoreboard + point composition -->
+  <div id="pres-top">
+    <div id="pres-scoreboard">
+      <div class="pres-side" id="pres-side-my">
+        <div class="pres-team-name" id="pres-name-my">My Team</div>
+        <div class="pres-score" id="pres-score-my">0</div>
+      </div>
+      <div id="pres-vs">–</div>
+      <div class="pres-side" id="pres-side-opp">
+        <div class="pres-team-name" id="pres-name-opp">Opponent</div>
+        <div class="pres-score" id="pres-score-opp">0</div>
+      </div>
+    </div>
+    <div id="pres-comp">
+      <div id="pres-comp-butterfly"></div>
+    </div>
+  </div>
+
+  <!-- Middle: serve run timeline -->
+  <div id="pres-mid">
+    <div class="pres-section-label">Serve run timeline</div>
+    <div id="pres-timeline"></div>
+  </div>
+
+  <!-- Bottom: momentum -->
+  <div id="pres-bot">
+    <div class="pres-section-label">Momentum swing</div>
+    <div id="pres-mom-wrap"><canvas id="pres-momentum"></canvas></div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:18px 0 4px;font-size:10px;color:var(--text3);letter-spacing:.05em">KSV Tracker v1.2 · 2026-05-23</div>
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+var ERRORS=['atk-out','atk-net','srv-out','srv-net','other'];
+var ALL_CATS=['attack','block','serve','atk-out','atk-net','srv-out','srv-net','other'];
+var CAT_LABELS={attack:'Attack (kill)',block:'Block',serve:'Serve (ace)','atk-out':'Atk err — out','atk-net':'Atk err — net','srv-out':'Srv err — out','srv-net':'Srv err — net',other:'Other err'};
+var COMP_COLORS=['#378ADD','#E8C319','#2EAB6A','#E24B4A'];
+var ERR_COLORS=['#E8C319','#E24B4A','#B0B0B0','#D94FBB','#2EAB6A'];
+var ERR_LABELS_DISP=['Atk err — out','Atk err — net','Srv err — out','Srv err — net','Other err'];
+
+function freshStats(){return{attack:0,block:0,serve:0,'atk-out':0,'atk-net':0,'srv-out':0,'srv-net':0,other:0,total:0};}
+function makeSnap(team,cat){return{tag:team+'|'+cat,server:S.server,runTeam:S.runTeam,run:S.run,myRuns:S.myRuns.slice(),oppRuns:S.oppRuns.slice(),myFailedSideouts:S.myFailedSideouts.slice(),oppFailedSideouts:S.oppFailedSideouts.slice(),my:Object.assign({},S.my),opp:Object.assign({},S.opp)};}
+function applySnap(snap){S.server=snap.server;S.runTeam=snap.runTeam;S.run=snap.run;S.myRuns=snap.myRuns.slice();S.oppRuns=snap.oppRuns.slice();S.myFailedSideouts=snap.myFailedSideouts?snap.myFailedSideouts.slice():[];S.oppFailedSideouts=snap.oppFailedSideouts?snap.oppFailedSideouts.slice():[];S.my=Object.assign({},snap.my);S.opp=Object.assign({},snap.opp);}
+
+var S={myName:'My team',oppName:'Opponent',server:null,firstServer:null,runTeam:null,run:0,myRuns:[],oppRuns:[],myFailedSideouts:[],oppFailedSideouts:[],my:freshStats(),opp:freshStats(),history:[],savedSets:[]};
+var visMomChart=null;
+
+function show(id){document.getElementById(id).classList.remove('hidden');}
+function hide(id){document.getElementById(id).classList.add('hidden');}
+function showScreen(name){['screen-setup','screen-tracker','screen-viewer'].forEach(function(s){hide(s);});show('screen-'+name);window.scrollTo(0,0);}
+
+function updateServeButtons(){
+  var myVal=document.getElementById('inp-my').value.trim();
+  var oppVal=document.getElementById('inp-opp').value.trim();
+  document.getElementById('pick-my-btn').textContent=myVal||'My team';
+  document.getElementById('pick-opp-btn').textContent=oppVal||'Opponent';
+}
+
+function startMatch(servingTeam){
+  S.myName=document.getElementById('inp-my').value.trim()||'My team';
+  S.oppName=document.getElementById('inp-opp').value.trim()||'Opponent';
+  S.server=servingTeam;S.firstServer=servingTeam;S.runTeam=servingTeam;S.run=0;
+  ['lbl-my','collbl-my','srv-lbl-my'].forEach(function(id){document.getElementById(id).textContent=S.myName;});
+  ['lbl-opp','collbl-opp','srv-lbl-opp'].forEach(function(id){document.getElementById(id).textContent=S.oppName;});
+  showScreen('tracker');render();
+}
+
+function isTouchInside(t,el){var r=el.getBoundingClientRect();return t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom;}
+
+function attachButtons(){
+  document.querySelectorAll('.cat-btn').forEach(function(btn){
+    var team=btn.dataset.team,cat=btn.dataset.cat,pressTimer=null,longFired=false,cancelled=false;
+    function cancelPress(){clearTimeout(pressTimer);btn.classList.remove('pressing');cancelled=true;}
+    function onTouchStart(e){e.preventDefault();longFired=false;cancelled=false;btn.classList.add('pressing');pressTimer=setTimeout(function(){if(cancelled)return;longFired=true;btn.classList.remove('pressing');if(team!==S.server){showToast('Hold only works on serving side — use Undo instead');return;}if(S[team][cat]===0){showToast("Can't go below 0");return;}btn.classList.add('removing');setTimeout(function(){btn.classList.remove('removing');},300);removeLast(team,cat);},600);}
+    function onTouchMove(e){if(!longFired&&!cancelled&&e.touches.length>0){if(!isTouchInside(e.touches[0],btn))cancelPress();}}
+    function onTouchEnd(e){e.preventDefault();clearTimeout(pressTimer);btn.classList.remove('pressing');if(!longFired&&!cancelled)addPoint(team,cat);longFired=false;cancelled=false;}
+    function onTouchCancel(){clearTimeout(pressTimer);btn.classList.remove('pressing');longFired=false;cancelled=false;}
+    function onMouseDown(){longFired=false;cancelled=false;btn.classList.add('pressing');pressTimer=setTimeout(function(){if(cancelled)return;longFired=true;btn.classList.remove('pressing');if(team!==S.server){showToast('Hold only works on serving side — use Undo instead');return;}if(S[team][cat]===0){showToast("Can't go below 0");return;}btn.classList.add('removing');setTimeout(function(){btn.classList.remove('removing');},300);removeLast(team,cat);},600);}
+    function onMouseUp(){clearTimeout(pressTimer);btn.classList.remove('pressing');if(!longFired&&!cancelled)addPoint(team,cat);longFired=false;cancelled=false;}
+    function onMouseLeave(){clearTimeout(pressTimer);btn.classList.remove('pressing');cancelled=true;}
+    btn.addEventListener('touchstart',onTouchStart,{passive:false});btn.addEventListener('touchmove',onTouchMove,{passive:true});
+    btn.addEventListener('touchend',onTouchEnd,{passive:false});btn.addEventListener('touchcancel',onTouchCancel);
+    btn.addEventListener('mousedown',onMouseDown);btn.addEventListener('mouseup',onMouseUp);btn.addEventListener('mouseleave',onMouseLeave);
+  });
+}
+
+function catToSideoutLetter(cat){
+  if(cat==='attack')return'K';  // opponent kill
+  if(cat==='block')return'B';   // opponent block
+  if(cat==='serve')return'A';   // opponent ace
+  return'E';                     // our error
+}
+
+function addPoint(team,cat){
+  if(!S.server){showToast('Pick who serves first');return;}
+  S.history.push(makeSnap(team,cat));if(S.history.length>80)S.history.shift();
+  S[team][cat]++;S[team].total++;
+  var letter=catToSideoutLetter(cat);
+  if(team===S.runTeam){
+    S.run++;
+    // Record letter: serving team scored → blank on other team's row
+    if(team==='my') S.oppFailedSideouts.push(letter);
+    else S.myFailedSideouts.push(letter);
+  } else {
+    var isFirstRun=S.myRuns.length===0&&S.oppRuns.length===0;
+    if(S.runTeam!==null&&(S.run>0||isFirstRun)){
+      if(S.runTeam==='my'){
+        S.myRuns.push(S.run);
+      } else {
+        S.oppRuns.push(S.run);
+      }
+    }
+    // This team just scored → blank on other team's row
+    if(team==='my') S.oppFailedSideouts.push(letter);
+    else S.myFailedSideouts.push(letter);
+    S.runTeam=team;S.run=1;S.server=team;
+  }
+  render();
+}
+
+function removeLast(team,cat){
+  var tag=team+'|'+cat;
+  for(var i=S.history.length-1;i>=0;i--){if(S.history[i].tag===tag){var snap=S.history[i];S.history=S.history.slice(0,i);applySnap(snap);showToast('−1 '+CAT_LABELS[cat]);render();return;}}
+  S[team][cat]--;S[team].total--;showToast('−1 '+CAT_LABELS[cat]+' (run unchanged)');render();
+}
+
+function undoLast(){if(!S.history.length){showToast('Nothing to undo');return;}applySnap(S.history.pop());showToast('Undone');render();}
+function askReset(){if(S.my.total+S.opp.total===0){showToast('Nothing to reset');return;}hide('newmatch-confirm');hide('import-panel');show('reset-confirm');}
+function dismissConfirm(){hide('reset-confirm');}
+function executeReset(){
+  hide('reset-confirm');
+  S.my=freshStats();S.opp=freshStats();S.server=null;S.firstServer=null;S.runTeam=null;S.run=0;S.myRuns=[];S.oppRuns=[];S.myFailedSideouts=[];S.oppFailedSideouts=[];S.history=[];
+  render();
+  showScreen('setup');
+}
+
+function saveSet(){
+  if(S.my.total+S.opp.total===0){showToast('No scores to save');return;}
+  var myRuns=S.myRuns.slice(),oppRuns=S.oppRuns.slice();
+  var myFS=S.myFailedSideouts.slice(),oppFS=S.oppFailedSideouts.slice();
+  if(S.runTeam==='my')myRuns.push(S.run);else if(S.runTeam==='opp')oppRuns.push(S.run);
+  S.savedSets.push({
+    setNum:S.savedSets.length+1,
+    myName:S.myName,oppName:S.oppName,
+    myTotal:S.my.total,oppTotal:S.opp.total,
+    myStats:Object.assign({},S.my),oppStats:Object.assign({},S.opp),
+    myRuns:myRuns,oppRuns:oppRuns,
+    myFailedSideouts:myFS,oppFailedSideouts:oppFS,
+    firstServer:S.firstServer,
+    finalRunTeam:S.runTeam
+  });
+  renderSavedList();show('saved-area');showToast('Set saved!');
+  S.my=freshStats();S.opp=freshStats();S.server=null;S.firstServer=null;S.runTeam=null;S.run=0;S.myRuns=[];S.oppRuns=[];S.myFailedSideouts=[];S.oppFailedSideouts=[];S.history=[];
+  render();showScreen('setup');
+}
+
+function calcSideout(oppRuns,currentOppRun,trimLast){
+  var successful=oppRuns.length;if(trimLast&&successful>0)successful-=1;
+  var attempted=oppRuns.reduce(function(a,v){return a+v;},0)+currentOppRun;
+  var denom=successful+attempted;
+  return{value:denom>0?successful/denom:null,successful:successful,attempted:attempted};
+}
+function calcAdv(stats,oppRuns,currentOppRun,trimLast,theirErrSum){
+  var total=stats.total,prod=stats.attack+stats.serve+stats.block;
+  var errSum=ERRORS.reduce(function(a,c){return a+stats[c];},0);
+  // prodEff = (our production - errors WE committed) / total pts
+  // Errors we committed are recorded in the OPPONENT's column (they scored from our mistakes)
+  // so we need theirErrSum = ERRORS summed from the opposing team's stats
+  var prodEff=(theirErrSum!==undefined&&total>0)?(prod-theirErrSum)/total:null;
+  return{prod:prod,prodPct:total>0?prod/total:null,prodEff:prodEff,errDep:total>0?errSum/total:null,so:calcSideout(oppRuns,currentOppRun,trimLast||false)};
+}
+function fmtPct(v){return v===null?'—':Math.round(v*100)+'%';}
+
+/* Return an indicator emoji for a stat, or '' if none applies.
+   warnCond / starCond are booleans. Warn takes priority over star if both true. */
+function perfIcon(v,warnCond,starCond){
+  if(v===null)return'';
+  if(warnCond)return' ⚠️';
+  if(starCond)return' ⭐️';
+  return'';
+}
+
+/* Max consecutive blanks a team faced = max run length in the OPPONENT's run array */
+function maxOppRun(oppRuns){
+  if(!oppRuns.length)return 0;
+  return Math.max.apply(null,oppRuns);
+}
+function timelineIcon(oppRuns){
+  var max=maxOppRun(oppRuns);
+  if(max>=4)return' ⚠️';
+  if(max<=1)return' ⭐️';
+  return'';
+}
+
+function renderAdv(myAdv,oppAdv){
+  var el=document.getElementById('adv-butterfly');
+  if(!el)return;
+  el.innerHTML='';
+  // Header row
+  var hdr=document.createElement('div');hdr.className='bt-header-row';
+  hdr.innerHTML='<div class="bt-hd-my" id="adv-lbl-my">'+S.myName+'</div><div class="bt-hd-lbl"></div><div class="bt-hd-opp" id="adv-lbl-opp">'+S.oppName+'</div>';
+  el.appendChild(hdr);
+  function advRow(label,myVal,oppVal,myIcon,oppIcon,sub){
+    var r=document.createElement('div');r.className='bt-row';r.style.alignItems='start';r.style.paddingTop='5px';r.style.paddingBottom='5px';
+    var mySub=sub?'<span class="bt-adv-sub">'+sub+'</span>':'';
+    r.innerHTML='<div class="bt-adv-my"><span class="bt-adv-val pct-my">'+myVal+'</span>'+(myIcon?'<span style="font-size:11px"> '+myIcon+'</span>':'')+'</div>'
+      +'<div class="bt-lbl">'+label+mySub+'</div>'
+      +'<div class="bt-adv-opp"><span class="bt-adv-val pct-opp">'+oppVal+'</span>'+(oppIcon?'<span style="font-size:11px"> '+oppIcon+'</span>':'')+'</div>';
+    el.appendChild(r);
+  }
+  advRow('Production',myAdv.prod+' pts',oppAdv.prod+' pts','','','Attacks + Serves + Blocks');
+  advRow('Production %',fmtPct(myAdv.prodPct),fmtPct(oppAdv.prodPct),
+    perfIcon(myAdv.prodPct,myAdv.prodPct!==null&&myAdv.prodPct<0.25,myAdv.prodPct!==null&&myAdv.prodPct>0.75),
+    perfIcon(oppAdv.prodPct,oppAdv.prodPct!==null&&oppAdv.prodPct<0.25,oppAdv.prodPct!==null&&oppAdv.prodPct>0.75),
+    'Production / Total pts');
+  advRow('Production eff.',fmtPct(myAdv.prodEff),fmtPct(oppAdv.prodEff),
+    perfIcon(myAdv.prodEff,myAdv.prodEff!==null&&myAdv.prodEff<0,myAdv.prodEff!==null&&myAdv.prodEff>0.50),
+    perfIcon(oppAdv.prodEff,oppAdv.prodEff!==null&&oppAdv.prodEff<0,oppAdv.prodEff!==null&&oppAdv.prodEff>0.50),
+    '(Production − Opp errors) / Total pts');
+  advRow('Error dependency',fmtPct(myAdv.errDep),fmtPct(oppAdv.errDep),
+    perfIcon(myAdv.errDep,myAdv.errDep!==null&&myAdv.errDep>0.60,myAdv.errDep!==null&&myAdv.errDep<0.10),
+    perfIcon(oppAdv.errDep,oppAdv.errDep!==null&&oppAdv.errDep>0.60,oppAdv.errDep!==null&&oppAdv.errDep<0.10),
+    'Opp errors / Total pts');
+  var mySoSub=myAdv.so.value!==null?myAdv.so.successful+'/'+(myAdv.so.successful+myAdv.so.attempted)+' att':'No activity yet';
+  var oppSoSub=oppAdv.so.value!==null?oppAdv.so.successful+'/'+(oppAdv.so.successful+oppAdv.so.attempted)+' att':'No activity yet';
+  advRow('Sideout %',fmtPct(myAdv.so.value),fmtPct(oppAdv.so.value),
+    perfIcon(myAdv.so.value,myAdv.so.value!==null&&myAdv.so.value<0.33,myAdv.so.value!==null&&myAdv.so.value>=0.75),
+    perfIcon(oppAdv.so.value,oppAdv.so.value!==null&&oppAdv.so.value<0.33,oppAdv.so.value!==null&&oppAdv.so.value>=0.75),
+    mySoSub+'  /  '+oppSoSub);
+}
+
+function buildPips(myRuns,oppRuns,firstServer){
+  // firstServer: 'my'|'opp'|null. If null, infer from run lengths (legacy fallback).
+  var myFirst=firstServer?firstServer==='my':myRuns.length>=oppRuns.length;
+  var first=myFirst?myRuns:oppRuns,second=myFirst?oppRuns:myRuns;
+  var firstTeam=myFirst?'my':'opp',secondTeam=myFirst?'opp':'my';
+  var pips=[],myCount=0,oppCount=0;
+  var maxLen=Math.max(first.length,second.length);
+  for(var i=0;i<maxLen;i++){
+    if(i<first.length){
+      for(var j=0;j<first[i];j++){
+        firstTeam==='my'?myCount++:oppCount++;
+        pips.push({scorer:firstTeam,myNum:myCount,oppNum:oppCount});
+      }
+    }
+    if(i<second.length){
+      for(var j=0;j<second[i];j++){
+        secondTeam==='my'?myCount++:oppCount++;
+        pips.push({scorer:secondTeam,myNum:myCount,oppNum:oppCount});
+      }
+    }
+  }
+  return pips;
+}
+
+function renderVisRunTimeline(myRuns,oppRuns,el,myName,oppName,firstServer,cellSize,cellGap,myFailedSideouts,oppFailedSideouts){
+  el.innerHTML='';
+  if(!myRuns.length&&!oppRuns.length){el.innerHTML='<span style="font-size:12px;color:var(--text2)">No run data yet</span>';return;}
+  var pips=buildPips(myRuns,oppRuns,firstServer);
+  var CELL=cellSize||20,GAP=cellGap||3;
+  var myFS=myFailedSideouts||[];
+  var oppFS=oppFailedSideouts||[];
+
+  function firstMarkerIdx(teamKey){
+    if(firstServer!==teamKey)return -1;
+    var firstRunLen=(teamKey==='my'?myRuns:oppRuns)[0];
+    if(firstRunLen===0){return 0;}
+    else{for(var pi=0;pi<pips.length;pi++){if(pips[pi].scorer===teamKey)return pi;}return -1;}
+  }
+  var myMarker=firstMarkerIdx('my');
+  var oppMarker=firstMarkerIdx('opp');
+
+  // Find runs of consecutive blanks >= minLen for a team row (opponent on a run against this team)
+  function longRuns(teamKey,scorerKey,minLen){
+    var runs=[],cur=null;
+    pips.forEach(function(pip,idx){
+      if(pip.scorer===scorerKey){
+        if(!cur)cur={start:idx,end:idx};
+        else cur.end=idx;
+      } else {
+        if(cur){if(cur.end-cur.start+1>=minLen)runs.push(cur);cur=null;}
+      }
+    });
+    if(cur&&cur.end-cur.start+1>=minLen)runs.push(cur);
+    return runs;
+  }
+
+  function makeRow(teamKey,teamName,isOpp){
+    var d=document.createElement('div');d.className='run-tl-team';
+    var lbl=document.createElement('div');lbl.className='run-tl-label '+(isOpp?'opp':'my');
+    lbl.textContent=teamName;d.appendChild(lbl);
+
+    // ⚠️ above blank runs (opponent scoring) >= 3
+    var oppKey=teamKey==='my'?'opp':'my';
+    var warnRuns=longRuns(teamKey,oppKey,3);
+    // ⭐️ above scored runs (this team scoring) >= 5
+    var starRuns=longRuns(teamKey,teamKey,5);
+
+    var hasAnnotations=warnRuns.length||starRuns.length;
+    if(hasAnnotations){
+      var annRow=document.createElement('div');
+      annRow.style.cssText='position:relative;height:16px;margin-bottom:2px';
+      warnRuns.forEach(function(r){
+        var leftPx=r.start*(CELL+GAP);
+        var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
+        var ann=document.createElement('div');
+        ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:11px;line-height:16px;top:0';
+        ann.textContent='⚠️';annRow.appendChild(ann);
+      });
+      starRuns.forEach(function(r){
+        var leftPx=r.start*(CELL+GAP);
+        var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
+        var ann=document.createElement('div');
+        ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:11px;line-height:16px;top:0';
+        ann.textContent='⭐️';annRow.appendChild(ann);
+      });
+      d.appendChild(annRow);
+    }
+
+    // Each blank pip on this team's row corresponds to one opponent point while serving.
+    // fsArr has one letter per such point, in chronological order.
+    // Assign each blank pip its own sequential letter from fsArr.
+    var fsArr=teamKey==='my'?myFS:oppFS;
+    var pipToLetter={};
+    if(fsArr.length){
+      var fsIdx=0;
+      pips.forEach(function(pip,idx){
+        if(pip.scorer!==teamKey){
+          pipToLetter[idx]=fsArr[fsIdx]||'';
+          fsIdx++;
+        }
+      });
+    }
+
+    var grid=document.createElement('div');grid.className='run-tl-grid';
+    var markerIdx=teamKey==='my'?myMarker:oppMarker;
+    pips.forEach(function(pip,idx){
+      var cell=document.createElement('div');
+      if(pip.scorer===teamKey){
+        cell.className='rtl-cell pt-'+teamKey;
+        cell.textContent=teamKey==='my'?pip.myNum:pip.oppNum;
+      } else {
+        cell.className='rtl-cell blank';
+        var letter=pipToLetter[idx];
+        if(letter){
+          cell.textContent=letter;
+          cell.style.cssText='font-size:8px;font-weight:700;color:#666;letter-spacing:0';
+        }
+      }
+      if(idx===markerIdx)cell.classList.add('first-server');
+      grid.appendChild(cell);
+    });
+    d.appendChild(grid);return d;
+  }
+  el.appendChild(makeRow('my',myName||S.myName||'My team',false));
+  el.appendChild(makeRow('opp',oppName||S.oppName||'Opponent',true));
+}
+
+function renderVisuals(){
+  if(S.my.total+S.opp.total===0){hide('vis-section');return;}
+  show('vis-section');
+  renderVisComp();
+  var myRuns=S.myRuns.slice(),oppRuns=S.oppRuns.slice();
+  if(S.runTeam==='my')myRuns.push(S.run);else if(S.runTeam==='opp')oppRuns.push(S.run);
+  renderVisRunTimeline(myRuns,oppRuns,document.getElementById('vis-run-timeline'),S.myName,S.oppName,S.firstServer,20,3,S.myFailedSideouts,S.oppFailedSideouts);
+  renderVisMomentum(myRuns,oppRuns,S.firstServer);
+  renderVisDonut2();
+}
+
+function renderCompButterfly(elId,myStats,oppStats,myName,oppName){
+  var el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML='';
+  var cats=[
+    {key:'attack', label:'Attack (kill)'},
+    {key:'block',  label:'Block'},
+    {key:'serve',  label:'Serve (ace)'},
+    {key:'errors', label:'Opponent errors'}
+  ];
+  function errSum(st){return ERRORS.reduce(function(a,c){return a+st[c];},0);}
+  function val(st,key){return key==='errors'?errSum(st):st[key]||0;}
+  var myVals=cats.map(function(c){return val(myStats,c.key);});
+  var oppVals=cats.map(function(c){return val(oppStats,c.key);});
+  var maxVal=Math.max.apply(null,myVals.concat(oppVals).concat([1]));
+  var wrap=document.createElement('div');wrap.className='err-butterfly';
+  // Header
+  var hdr=document.createElement('div');hdr.className='err-bf-header';
+  hdr.innerHTML='<div class="err-bf-head-left">'+myName+'</div>'
+    +'<div class="err-bf-head-center"></div>'
+    +'<div class="err-bf-head-right">'+oppName+'</div>';
+  wrap.appendChild(hdr);
+  // Rows
+  cats.forEach(function(cat,i){
+    var mv=myVals[i],ov=oppVals[i],col=COMP_COLORS[i];
+    var mPct=Math.round(mv/maxVal*100),oPct=Math.round(ov/maxVal*100);
+    var row=document.createElement('div');row.className='err-bf-row';
+    var lCell=document.createElement('div');lCell.className='err-bf-bar-left';
+    lCell.innerHTML='<div class="err-bf-fill" style="width:'+mPct+'%;background:'+col+'"></div>'
+      +'<span class="err-bf-val" style="color:'+col+'">'+mv+'</span>';
+    var cCell=document.createElement('div');cCell.className='err-bf-label';
+    cCell.textContent=cat.label;
+    var rCell=document.createElement('div');rCell.className='err-bf-bar-right';
+    rCell.innerHTML='<span class="err-bf-val" style="color:'+col+'">'+ov+'</span>'
+      +'<div class="err-bf-fill" style="width:'+oPct+'%;background:'+col+'"></div>';
+    row.appendChild(lCell);row.appendChild(cCell);row.appendChild(rCell);
+    wrap.appendChild(row);
+  });
+  // Total row
+  var totRow=document.createElement('div');totRow.className='err-bf-row';
+  totRow.style.cssText='border-top:0.5px solid var(--border2);margin-top:4px;padding-top:4px';
+  totRow.innerHTML='<div class="err-bf-bar-left"><span class="err-bf-val" style="color:var(--text)">'+myStats.total+'</span></div>'
+    +'<div class="err-bf-label" style="color:var(--text2);font-size:9px">Total</div>'
+    +'<div class="err-bf-bar-right"><span class="err-bf-val" style="color:var(--text)">'+oppStats.total+'</span></div>';
+  wrap.appendChild(totRow);
+  el.appendChild(wrap);
+}
+
+function renderVisComp(){
+  renderCompButterfly('vis-comp-butterfly',S.my,S.opp,S.myName,S.oppName);
+}
+
+function renderVisMomentum(myRuns,oppRuns,firstServer){
+  var pips=buildPips(myRuns,oppRuns,firstServer);
+  var points=[0],diff=0;
+  pips.forEach(function(p){diff+=(p.scorer==='my'?1:-1);points.push(diff);});
+  if(visMomChart){visMomChart.destroy();visMomChart=null;}
+  visMomChart=new Chart(document.getElementById('vis-momentum'),{
+    type:'line',
+    data:{labels:points.map(function(_,i){return i;}),datasets:[{label:'Diff',data:points,borderColor:'#378ADD',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,138,221,0.1)',below:'rgba(216,90,48,0.1)'},tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var v=ctx.raw;return v>0?'+'+v+' '+S.myName:v<0?Math.abs(v)+' '+S.oppName:'Tied';}}}},scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{color:'#999',font:{size:11},callback:function(v){return v>0?'+'+v:v;}},border:{color:'transparent'}}}}
+  });
+}
+
+/* Render a butterfly (back-to-back bar) error chart into elId.
+   leftStats = team whose bars grow LEFT (My Team's own errors = in S.opp).
+   rightStats = team whose bars grow RIGHT (Opp's own errors = in S.my).
+   leftName / rightName = column header labels. */
+function renderErrButterfly(elId,leftStats,rightStats,leftName,rightName){
+  var el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML='';
+  var leftVals=ERRORS.map(function(k){return leftStats[k]||0;});
+  var rightVals=ERRORS.map(function(k){return rightStats[k]||0;});
+  var maxVal=Math.max.apply(null,leftVals.concat(rightVals).concat([1]));
+
+  var wrap=document.createElement('div');wrap.className='err-butterfly';
+
+  // Header row
+  var hdr=document.createElement('div');hdr.className='err-bf-header';
+  hdr.innerHTML='<div class="err-bf-head-left">'+leftName+'</div>'
+    +'<div class="err-bf-head-center"></div>'
+    +'<div class="err-bf-head-right">'+rightName+'</div>';
+  wrap.appendChild(hdr);
+
+  // Data rows — always render all 5
+  ERRORS.forEach(function(k,i){
+    var lv=leftVals[i],rv=rightVals[i];
+    var lPct=Math.round(lv/maxVal*100),rPct=Math.round(rv/maxVal*100);
+    var row=document.createElement('div');row.className='err-bf-row';
+    // Left bar: bar at outer end, value at inner edge (origin side)
+    var lCell=document.createElement('div');lCell.className='err-bf-bar-left';
+    lCell.innerHTML='<div class="err-bf-fill" style="width:'+lPct+'%;background:#378ADD;max-width:100%"></div>'
+      +'<span class="err-bf-val" style="color:#7EB8FF">'+lv+'</span>';
+    var cCell=document.createElement('div');cCell.className='err-bf-label';
+    cCell.textContent=ERR_LABELS_DISP[i];
+    // Right bar: value at inner edge (origin side), bar grows outward
+    var rCell=document.createElement('div');rCell.className='err-bf-bar-right';
+    rCell.innerHTML='<span class="err-bf-val" style="color:#FF9A7E">'+rv+'</span>'
+      +'<div class="err-bf-fill" style="width:'+rPct+'%;background:#D85A30;max-width:100%"></div>';
+    row.appendChild(lCell);row.appendChild(cCell);row.appendChild(rCell);
+    wrap.appendChild(row);
+  });
+  // Total row
+  var leftTotal=leftVals.reduce(function(a,b){return a+b;},0);
+  var rightTotal=rightVals.reduce(function(a,b){return a+b;},0);
+  var totRow=document.createElement('div');totRow.className='err-bf-row';
+  totRow.style.cssText='border-top:0.5px solid var(--border2);margin-top:4px;padding-top:4px';
+  totRow.innerHTML='<div class="err-bf-bar-left"><span class="err-bf-val" style="color:var(--text);font-weight:600">'+leftTotal+'</span></div>'
+    +'<div class="err-bf-label" style="color:var(--text2);font-size:9px">Total errors</div>'
+    +'<div class="err-bf-bar-right"><span class="err-bf-val" style="color:var(--text);font-weight:600">'+rightTotal+'</span></div>';
+  wrap.appendChild(totRow);
+  el.appendChild(wrap);
+}
+
+function buildMomChartWithBoundaries(canvasEl,myRuns,oppRuns,myName,oppName,firstServer,boundaries){
+  boundaries=boundaries||[];
+  var existing=Chart.getChart(canvasEl);if(existing)existing.destroy();
+  var pips=buildPips(myRuns,oppRuns,firstServer);
+  var points=[0],diff=0;
+  pips.forEach(function(p){diff+=(p.scorer==='my'?1:-1);points.push(diff);});
+  return new Chart(canvasEl,{
+    type:'line',
+    data:{labels:points.map(function(_,i){return i;}),datasets:[{label:'Diff',data:points,borderColor:'#378ADD',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,138,221,0.1)',below:'rgba(216,90,48,0.1)'},tension:0.3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var v=ctx.raw;return v>0?'+'+v+' '+myName:v<0?Math.abs(v)+' '+oppName:'Tied';}}}},
+      scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{color:'#999',font:{size:11},callback:function(v){return v>0?'+'+v:v;}},border:{color:'transparent'}}}
+    },
+    plugins:[{
+      id:'setBoundaries',
+      afterDraw:function(chart){
+        if(!boundaries.length)return;
+        var ctx=chart.ctx,xAxis=chart.scales.x,yAxis=chart.scales.y;
+        ctx.save();
+        ctx.strokeStyle='rgba(255,255,255,0.25)';
+        ctx.lineWidth=1;
+        ctx.setLineDash([4,4]);
+        boundaries.forEach(function(pipIdx){
+          var x=xAxis.getPixelForValue(pipIdx);
+          ctx.beginPath();ctx.moveTo(x,yAxis.top);ctx.lineTo(x,yAxis.bottom);ctx.stroke();
+          // Set label above the line
+          ctx.setLineDash([]);
+          ctx.fillStyle='rgba(255,255,255,0.3)';
+          ctx.font='9px system-ui,sans-serif';
+          ctx.textAlign='center';
+          var setNum=boundaries.indexOf(pipIdx)+2; // boundary after set N = set N+1 starts
+          ctx.fillText('S'+setNum,x,yAxis.top+10);
+          ctx.setLineDash([4,4]);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+function renderVisDonut2(){
+  // My Team column = My Team's OWN errors → stored in S.opp (opp scored from our mistakes)
+  // Opp column = Opp's OWN errors → stored in S.my (we scored from their mistakes)
+  renderErrButterfly('vis-err-butterfly',S.opp,S.my,S.myName,S.oppName);
+}
+
+/* ══════════════ Viewer visuals ══════════════ */
+var vMomCharts=[];
+var vCurrentSet=null;
+var vCurrentIdx=null; // -1 = Full Match, 0..N-1 = set index
+
+function vDestroyCharts(){
+  vMomCharts.forEach(function(c){if(c)c.destroy();});vMomCharts=[];
+}
+
+/* Build a donut chart into a given canvas + legend element.
+   Returns the Chart instance so caller can track it. */
+function buildDonutChart(canvasId,legId,statsObj){
+  var vals=ERRORS.map(function(k){return statsObj[k]||0;});
+  var total=vals.reduce(function(a,b){return a+b;},0);
+  var leg=document.getElementById(legId);leg.innerHTML='';
+  var canvas=document.getElementById(canvasId);
+  var existing=Chart.getChart(canvas);if(existing)existing.destroy();
+  if(total===0){leg.innerHTML='<span style="font-size:11px;color:var(--text2)">No errors</span>';return null;}
+  var chart=new Chart(canvas,{
+    type:'doughnut',
+    data:{labels:ERR_LABELS_DISP,datasets:[{data:vals,backgroundColor:ERR_COLORS,borderWidth:0,borderRadius:2,spacing:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.label+': '+ctx.raw+' ('+Math.round(ctx.raw/total*100)+'%)';}}}}
+  }});
+  ERRORS.forEach(function(k,i){
+    if(vals[i]===0)return;
+    var row=document.createElement('div');row.className='donut2-leg-row';
+    row.innerHTML='<span class="donut-dot" style="background:'+ERR_COLORS[i]+'"></span>'
+      +'<span class="donut2-leg-lbl">'+ERR_LABELS_DISP[i]+'</span>'
+      +'<span class="donut2-leg-val">'+vals[i]+'</span>';
+    leg.appendChild(row);
+  });
+  var totRow=document.createElement('div');
+  totRow.style.cssText='border-top:0.5px solid var(--border2);margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-size:10px;font-weight:500';
+  totRow.innerHTML='<span style="color:var(--text2)">Total</span><span>'+total+'</span>';
+  leg.appendChild(totRow);
+  return chart;
+}
+
+/* Render butterfly into the viewer's error breakdown container.
+   myStats/oppStats: same objects passed from the set — swap for "own errors" display. */
+function vRenderDonut2(myStats,oppStats,myName,oppName){
+  // My Team column = My Team's OWN errors → oppStats (opp scored from our mistakes)
+  // Opp column = Opp's OWN errors → myStats (we scored from their mistakes)
+  renderErrButterfly('v-vis-err-butterfly',oppStats,myStats,myName,oppName);
+}
+
+/* Build a momentum chart into a given canvas element. Returns chart instance. */
+function buildMomChart(canvasEl,myRuns,oppRuns,myName,oppName,firstServer){
+  var existing=Chart.getChart(canvasEl);if(existing)existing.destroy();
+  var pips=buildPips(myRuns,oppRuns,firstServer);
+  var points=[0],diff=0;
+  pips.forEach(function(p){diff+=(p.scorer==='my'?1:-1);points.push(diff);});
+  return new Chart(canvasEl,{
+    type:'line',
+    data:{labels:points.map(function(_,i){return i;}),datasets:[{label:'Diff',data:points,borderColor:'#378ADD',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,138,221,0.1)',below:'rgba(216,90,48,0.1)'},tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var v=ctx.raw;return v>0?'+'+v+' '+myName:v<0?Math.abs(v)+' '+oppName:'Tied';}}}},scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{color:'#999',font:{size:11},callback:function(v){return v>0?'+'+v:v;}},border:{color:'transparent'}}}}
+  });
+}
+
+function vRenderComp(myStats,oppStats,myName,oppName){
+  renderCompButterfly('v-vis-comp-butterfly',myStats,oppStats,myName,oppName);
+}
+
+/* Render a per-set subsection into a container element (timeline or momentum) */
+function makeSubsection(label){
+  var wrap=document.createElement('div');wrap.className='set-subsection';
+  var lbl=document.createElement('div');lbl.className='set-subsection-label';lbl.textContent=label;
+  wrap.appendChild(lbl);return wrap;
+}
+
+function renderViewerVisuals(s){
+  // s is a single saved-set object
+  vDestroyCharts();
+  vCurrentSet=s;
+  vRenderComp(s.myStats,s.oppStats,s.myName,s.oppName);
+  // Timeline — single set, no subsection label
+  renderVisRunTimeline(s.myRuns,s.oppRuns,document.getElementById('v-vis-run-timeline'),s.myName,s.oppName,s.firstServer,20,3,s.myFailedSideouts,s.oppFailedSideouts);
+  // Momentum — single chart
+  var momEl=document.getElementById('v-vis-momentum');
+  var c=buildMomChart(momEl,s.myRuns,s.oppRuns,s.myName,s.oppName,s.firstServer);
+  vMomCharts=[c];
+  // 2-col donut
+  vRenderDonut2(s.myStats,s.oppStats,s.myName,s.oppName);
+}
+
+function renderViewerVisualsFullMatch(sets,myName,oppName){
+  vDestroyCharts();
+  vCurrentSet=null;
+
+  // Aggregate stats for comp chart
+  var totalMyStats=freshStats(),totalOppStats=freshStats();
+  sets.forEach(function(s){
+    ALL_CATS.forEach(function(c){totalMyStats[c]+=s.myStats[c];totalOppStats[c]+=s.oppStats[c];});
+    totalMyStats.total+=s.myStats.total;totalOppStats.total+=s.oppStats.total;
+  });
+  vRenderComp(totalMyStats,totalOppStats,myName,oppName);
+
+  // Timeline — per-set subsections
+  var tlEl=document.getElementById('v-vis-run-timeline');tlEl.innerHTML='';
+  sets.forEach(function(s){
+    var sub=makeSubsection('Set '+s.setNum);
+    var inner=document.createElement('div');
+    renderVisRunTimeline(s.myRuns,s.oppRuns,inner,s.myName,s.oppName,s.firstServer,20,3,s.myFailedSideouts,s.oppFailedSideouts);
+    sub.appendChild(inner);
+    tlEl.appendChild(sub);
+  });
+
+  // Momentum — per-set subsections, each with own canvas
+  var momWrap=document.getElementById('v-vis-mom-wrap');
+  momWrap.style.cssText='';momWrap.innerHTML='';
+  sets.forEach(function(s,i){
+    var sub=makeSubsection('Set '+s.setNum);
+    var canvasWrap=document.createElement('div');canvasWrap.style.cssText='position:relative;width:100%;height:150px;margin-bottom:6px';
+    var canvas=document.createElement('canvas');canvas.id='v-vis-momentum-'+i;
+    canvasWrap.appendChild(canvas);sub.appendChild(canvasWrap);momWrap.appendChild(sub);
+    var c=buildMomChart(canvas,s.myRuns,s.oppRuns,s.myName,s.oppName,s.firstServer);
+    vMomCharts.push(c);
+  });
+
+  // 2-col donut — use aggregated stats
+  vRenderDonut2(totalMyStats,totalOppStats,myName,oppName);
+}
+
+var vCopySet=null; // set being viewed, used by copySetTSV
+
+function copySetTSV(){
+  var s=vCopySet;
+  if(!s){showToast('Nothing to copy');return;}
+  var T='\t';
+  var my=s.myStats,opp=s.oppStats;
+  var myEarned=my.attack+my.block+my.serve;
+  var oppEarned=opp.attack+opp.block+opp.serve;
+  var myErrTotal=ERRORS.reduce(function(a,c){return a+my[c];},0);
+  var oppErrTotal=ERRORS.reduce(function(a,c){return a+opp[c];},0);
+  var myRuns=s.myRuns.join(',');
+  var oppRuns=s.oppRuns.join(',');
+  var myFS=(s.myFailedSideouts||[]).join(',');
+  var oppFS=(s.oppFailedSideouts||[]).join(',');
+  var row=[
+    s.firstServer||'',
+    s.setNum,
+    my.total, myEarned,
+    my.attack, my.block, my.serve,
+    myErrTotal,
+    my['atk-net'], my['atk-out'], my['srv-net'], my['srv-out'], my.other,
+    myRuns||'',
+    opp.total, oppEarned,
+    opp.attack, opp.block, opp.serve,
+    oppErrTotal,
+    opp['atk-net'], opp['atk-out'], opp['srv-net'], opp['srv-out'], opp.other,
+    oppRuns||'',
+    myFS,
+    oppFS
+  ].join(T);
+  navigator.clipboard.writeText(row).then(function(){
+    var btn=document.getElementById('btn-copy-set');
+    var orig=btn.textContent;
+    btn.textContent='Copied!';
+    btn.style.color='#7EB8FF';
+    btn.style.borderColor='#378ADD';
+    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
+  }).catch(function(){showToast('Copy failed — try a different browser');});
+}
+
+/* ══════════════ openViewer ══════════════ */
+function updateNavArrows(){
+  var prev=document.getElementById('btn-nav-prev');
+  var next=document.getElementById('btn-nav-next');
+  if(!prev||!next)return;
+  // idx: -1=FullMatch, 0..N-1=sets. Left disabled at FullMatch(-1), right disabled at last set.
+  var atStart=vCurrentIdx===-1;
+  var atEnd=vCurrentIdx===S.savedSets.length-1;
+  prev.disabled=atStart;
+  next.disabled=atEnd;
+}
+
+function navigateViewer(delta){
+  // -1=prev, +1=next
+  var newIdx=vCurrentIdx+delta;
+  if(newIdx<-1||newIdx>=S.savedSets.length)return;
+  window.scrollTo(0,0);
+  if(newIdx===-1){openFullMatch();}
+  else{openViewer(newIdx);}
+}
+
+function openViewer(idx){
+  var s=S.savedSets[idx];
+  vCurrentIdx=idx;
+  vCopySet=s;
+  hide('btn-copy-match');
+  show('btn-copy-set');
+  show('btn-screenshot');
+  show('btn-present');
+  show('viewer-serve-section');
+  updateNavArrows();
+
+  // Header
+  document.getElementById('viewer-title').textContent='Set '+s.setNum;
+  document.getElementById('viewer-score-line').textContent='';
+
+  // Scoreboard
+  document.getElementById('viewer-name-my').textContent=s.myName;
+  document.getElementById('viewer-name-opp').textContent=s.oppName;
+  document.getElementById('viewer-sc-my').textContent=s.myTotal;
+  document.getElementById('viewer-sc-opp').textContent=s.oppTotal;
+
+  // Serve run labels + chips
+  document.getElementById('viewer-run-lbl-my').textContent=s.myName;
+  document.getElementById('viewer-run-lbl-opp').textContent=s.oppName;
+
+  // ── Stats table (3-col butterfly) ──
+  function buildStatsTable(myStats,oppStats,myName,oppName){
+    var el=document.getElementById('viewer-stats-table');el.innerHTML='';
+    // Header
+    var hdr=document.createElement('div');hdr.className='bt-header-row';
+    hdr.innerHTML='<div class="bt-hd-my">'+myName+'</div><div class="bt-hd-lbl"></div><div class="bt-hd-opp">'+oppName+'</div>';
+    el.appendChild(hdr);
+    // Attack, Block, Serve
+    ['attack','block','serve'].forEach(function(c){
+      var r=document.createElement('div');r.className='bt-row';
+      r.innerHTML='<div class="bt-my">'+myStats[c]+'</div><div class="bt-lbl">'+CAT_LABELS[c]+'</div><div class="bt-opp">'+oppStats[c]+'</div>';
+      el.appendChild(r);
+    });
+    // Opponent errors — collapsible, controls both sides
+    var myErrSum=ERRORS.reduce(function(a,c){return a+myStats[c];},0);
+    var oppErrSum=ERRORS.reduce(function(a,c){return a+oppStats[c];},0);
+    var errHdr=document.createElement('div');errHdr.className='bt-row bt-highlight bt-collapsible';
+    errHdr.innerHTML='<div class="bt-my" style="color:#7EB8FF">'+myErrSum+'</div><div class="bt-lbl">Opponent errors</div><div class="bt-opp" style="color:#FF9A7E">'+oppErrSum+'</div>';
+    el.appendChild(errHdr);
+    var subs=[];
+    ERRORS.forEach(function(c){
+      var r=document.createElement('div');r.className='bt-row bt-sub';r.style.display='none';
+      r.innerHTML='<div class="bt-my">'+myStats[c]+'</div><div class="bt-lbl">'+CAT_LABELS[c]+'</div><div class="bt-opp">'+oppStats[c]+'</div>';
+      el.appendChild(r);subs.push(r);
+    });
+    errHdr.addEventListener('click',function(){
+      var exp=errHdr.classList.toggle('expanded');
+      subs.forEach(function(r){r.style.display=exp?'':'none';});
+    });
+    // Total
+    var tot=document.createElement('div');tot.className='bt-row bt-total';
+    tot.innerHTML='<div class="bt-my">'+myStats.total+'</div><div class="bt-lbl" style="color:var(--text)">Total</div><div class="bt-opp">'+oppStats.total+'</div>';
+    el.appendChild(tot);
+  }
+
+  // ── Advanced stats table (3-col butterfly) ──
+  function buildAdvTable(myAdv,oppAdv,myName,oppName){
+    var el=document.getElementById('viewer-adv-table');el.innerHTML='';
+    // Header
+    var hdr=document.createElement('div');hdr.className='bt-header-row';
+    hdr.innerHTML='<div class="bt-hd-my">'+myName+'</div><div class="bt-hd-lbl"></div><div class="bt-hd-opp">'+oppName+'</div>';
+    el.appendChild(hdr);
+    function advRow(label,myVal,oppVal,myIcon,oppIcon,sub){
+      var r=document.createElement('div');r.className='bt-row';
+      r.style.alignItems='start';r.style.paddingTop='5px';r.style.paddingBottom='5px';
+      var mySub=sub?'<span class="bt-adv-sub">'+sub+'</span>':'';
+      r.innerHTML='<div class="bt-adv-my"><span class="bt-adv-val pct-my">'+myVal+'</span>'+(myIcon?'<span style="font-size:11px"> '+myIcon+'</span>':'')+'</div>'
+        +'<div class="bt-lbl" style="text-align:center">'+label+mySub+'</div>'
+        +'<div class="bt-adv-opp"><span class="bt-adv-val pct-opp">'+oppVal+'</span>'+(oppIcon?'<span style="font-size:11px"> '+oppIcon+'</span>':'')+'</div>';
+      el.appendChild(r);
+    }
+    advRow('Production',myAdv.prod+' pts',oppAdv.prod+' pts','','','Attacks + Serves + Blocks');
+    advRow('Production %',fmtPct(myAdv.prodPct),fmtPct(oppAdv.prodPct),
+      perfIcon(myAdv.prodPct,myAdv.prodPct!==null&&myAdv.prodPct<0.25,myAdv.prodPct!==null&&myAdv.prodPct>0.75),
+      perfIcon(oppAdv.prodPct,oppAdv.prodPct!==null&&oppAdv.prodPct<0.25,oppAdv.prodPct!==null&&oppAdv.prodPct>0.75),
+      'Production / Total pts');
+    advRow('Production eff.',fmtPct(myAdv.prodEff),fmtPct(oppAdv.prodEff),
+      perfIcon(myAdv.prodEff,myAdv.prodEff!==null&&myAdv.prodEff<0,myAdv.prodEff!==null&&myAdv.prodEff>0.50),
+      perfIcon(oppAdv.prodEff,oppAdv.prodEff!==null&&oppAdv.prodEff<0,oppAdv.prodEff!==null&&oppAdv.prodEff>0.50),
+      '(Production − Opp errors) / Total pts');
+    advRow('Error dependency',fmtPct(myAdv.errDep),fmtPct(oppAdv.errDep),
+      perfIcon(myAdv.errDep,myAdv.errDep!==null&&myAdv.errDep>0.60,myAdv.errDep!==null&&myAdv.errDep<0.10),
+      perfIcon(oppAdv.errDep,oppAdv.errDep!==null&&oppAdv.errDep>0.60,oppAdv.errDep!==null&&oppAdv.errDep<0.10),
+      'Opp errors / Total pts');
+    var mySoSub=myAdv.so.value!==null?myAdv.so.successful+'/'+(myAdv.so.successful+myAdv.so.attempted)+' attempts':'No data';
+    var oppSoSub=oppAdv.so.value!==null?oppAdv.so.successful+'/'+(oppAdv.so.successful+oppAdv.so.attempted)+' attempts':'No data';
+    advRow('Sideout %',fmtPct(myAdv.so.value),fmtPct(oppAdv.so.value),
+      perfIcon(myAdv.so.value,myAdv.so.value!==null&&myAdv.so.value<0.33,myAdv.so.value!==null&&myAdv.so.value>=0.75),
+      perfIcon(oppAdv.so.value,oppAdv.so.value!==null&&oppAdv.so.value<0.33,oppAdv.so.value!==null&&oppAdv.so.value>=0.75),
+      mySoSub+'  /  '+oppSoSub);
+  }
+
+  buildStatsTable(s.myStats,s.oppStats,s.myName,s.oppName);
+
+  // Advanced stats
+  var myAdv=calcAdv(s.myStats,s.oppRuns,0,s.finalRunTeam==='opp',ERRORS.reduce(function(a,c){return a+s.oppStats[c];},0));
+  var oppAdv=calcAdv(s.oppStats,s.myRuns,0,s.finalRunTeam==='my',ERRORS.reduce(function(a,c){return a+s.myStats[c];},0));
+  buildAdvTable(myAdv,oppAdv,s.myName,s.oppName);
+
+  // Serve run chips (single set — no subsections)
+  var chipsMyEl=document.getElementById('viewer-chips-my');
+  var chipsOppEl=document.getElementById('viewer-chips-opp');
+  chipsMyEl.innerHTML='';chipsOppEl.innerHTML='';
+  // restore single-row layout (full-match may have changed this to subsections)
+  document.getElementById('viewer-run-lbl-my').style.display='';
+  document.getElementById('viewer-run-lbl-opp').style.display='';
+  if(!s.myRuns.length&&!s.oppRuns.length){
+    chipsMyEl.innerHTML='<span style="font-size:11px;color:#555">—</span>';
+    chipsOppEl.innerHTML='<span style="font-size:11px;color:#555">—</span>';
+  } else {
+    s.myRuns.forEach(function(r,i){var c=document.createElement('span');c.className='chip';if(i===0&&s.firstServer==='my')c.classList.add('first-server');c.textContent=r;chipsMyEl.appendChild(c);});
+    s.oppRuns.forEach(function(r,i){var c=document.createElement('span');c.className='chip opp';if(i===0&&s.firstServer==='opp')c.classList.add('first-server');c.textContent=r;chipsOppEl.appendChild(c);});
+  }
+
+  // Reset momentum container to fixed height for single-set
+  var momWrap=document.getElementById('v-vis-mom-wrap');
+  momWrap.style.cssText='position:relative;width:100%;height:180px';
+  momWrap.innerHTML='<canvas id="v-vis-momentum"></canvas>';
+
+  renderViewerVisuals(s);
+  showScreen('viewer');
+}
+
+/* ══════════════ Full Match Viewer ══════════════ */
+function openFullMatch(){
+  var sets=S.savedSets;
+  if(!sets.length){showToast('No saved sets yet');return;}
+  vCurrentIdx=-1;
+  vCopySet=null;
+  hide('btn-copy-set');
+  show('btn-copy-match');
+  show('btn-screenshot');
+  show('btn-present');
+  hide('viewer-serve-section');
+  updateNavArrows();
+  var myName=sets[0].myName,oppName=sets[0].oppName;
+  var mySetsWon=sets.reduce(function(a,s){return a+(s.myTotal>s.oppTotal?1:0);},0);
+  var oppSetsWon=sets.reduce(function(a,s){return a+(s.oppTotal>s.myTotal?1:0);},0);
+
+  // Header
+  document.getElementById('viewer-title').textContent='Full Match';
+  document.getElementById('viewer-score-line').textContent='';
+
+  // Scoreboard — show sets won
+  document.getElementById('viewer-name-my').textContent=myName;
+  document.getElementById('viewer-name-opp').textContent=oppName;
+  document.getElementById('viewer-sc-my').textContent=mySetsWon;
+  document.getElementById('viewer-sc-opp').textContent=oppSetsWon;
+
+  // ── Stats: sum all sets ──
+  var totalMyStats=freshStats(),totalOppStats=freshStats();
+  sets.forEach(function(s){
+    ALL_CATS.forEach(function(c){totalMyStats[c]+=s.myStats[c];totalOppStats[c]+=s.oppStats[c];});
+    totalMyStats.total+=s.myStats.total;totalOppStats.total+=s.oppStats.total;
+  });
+
+  // Stats butterfly table
+  (function(){
+    var el=document.getElementById('viewer-stats-table');el.innerHTML='';
+    var hdr=document.createElement('div');hdr.className='bt-header-row';
+    hdr.innerHTML='<div class="bt-hd-my">'+myName+'</div><div class="bt-hd-lbl"></div><div class="bt-hd-opp">'+oppName+'</div>';
+    el.appendChild(hdr);
+    ['attack','block','serve'].forEach(function(c){
+      var r=document.createElement('div');r.className='bt-row';
+      r.innerHTML='<div class="bt-my">'+totalMyStats[c]+'</div><div class="bt-lbl">'+CAT_LABELS[c]+'</div><div class="bt-opp">'+totalOppStats[c]+'</div>';
+      el.appendChild(r);
+    });
+    var myErrSum=ERRORS.reduce(function(a,c){return a+totalMyStats[c];},0);
+    var oppErrSum=ERRORS.reduce(function(a,c){return a+totalOppStats[c];},0);
+    var errHdr=document.createElement('div');errHdr.className='bt-row bt-highlight bt-collapsible';
+    errHdr.innerHTML='<div class="bt-my" style="color:#7EB8FF">'+myErrSum+'</div><div class="bt-lbl">Opponent errors</div><div class="bt-opp" style="color:#FF9A7E">'+oppErrSum+'</div>';
+    el.appendChild(errHdr);
+    var subs=[];
+    ERRORS.forEach(function(c){
+      var r=document.createElement('div');r.className='bt-row bt-sub';r.style.display='none';
+      r.innerHTML='<div class="bt-my">'+totalMyStats[c]+'</div><div class="bt-lbl">'+CAT_LABELS[c]+'</div><div class="bt-opp">'+totalOppStats[c]+'</div>';
+      el.appendChild(r);subs.push(r);
+    });
+    errHdr.addEventListener('click',function(){var exp=errHdr.classList.toggle('expanded');subs.forEach(function(r){r.style.display=exp?'':'none';});});
+    var tot=document.createElement('div');tot.className='bt-row bt-total';
+    tot.innerHTML='<div class="bt-my">'+totalMyStats.total+'</div><div class="bt-lbl" style="color:var(--text)">Total</div><div class="bt-opp">'+totalOppStats.total+'</div>';
+    el.appendChild(tot);
+  })();
+
+  // ── Advanced stats: aggregate across sets ──
+  function calcMatchAdv(teamStats,allOppRuns,theirErrSum){
+    var total=teamStats.total,prod=teamStats.attack+teamStats.serve+teamStats.block;
+    var errSum=ERRORS.reduce(function(a,c){return a+teamStats[c];},0);
+    var soSuccessful=allOppRuns.length;
+    var soAttemptedCorrect=allOppRuns.reduce(function(a,v){return a+v;},0)+soSuccessful;
+    var soVal=soAttemptedCorrect>0?soSuccessful/soAttemptedCorrect:null;
+    var prodEff=(theirErrSum!==undefined&&total>0)?(prod-theirErrSum)/total:null;
+    return{prod:prod,prodPct:total>0?prod/total:null,prodEff:prodEff,errDep:total>0?errSum/total:null,
+      so:{value:soVal,successful:soSuccessful,attempted:soAttemptedCorrect}};
+  }
+  var allMyOppRuns=[],allOppMyRuns=[];
+  sets.forEach(function(s){
+    s.oppRuns.forEach(function(r){allMyOppRuns.push(r);});
+    s.myRuns.forEach(function(r){allOppMyRuns.push(r);});
+  });
+  var myErrSumTotal=ERRORS.reduce(function(a,c){return a+totalMyStats[c];},0);
+  var oppErrSumTotal=ERRORS.reduce(function(a,c){return a+totalOppStats[c];},0);
+  var myMatchAdv=calcMatchAdv(totalMyStats,allMyOppRuns,oppErrSumTotal);
+  var oppMatchAdv=calcMatchAdv(totalOppStats,allOppMyRuns,myErrSumTotal);
+
+  // Adv stats butterfly table
+  (function(){
+    var el=document.getElementById('viewer-adv-table');el.innerHTML='';
+    var hdr=document.createElement('div');hdr.className='bt-header-row';
+    hdr.innerHTML='<div class="bt-hd-my">'+myName+'</div><div class="bt-hd-lbl"></div><div class="bt-hd-opp">'+oppName+'</div>';
+    el.appendChild(hdr);
+    function advRow(label,myVal,oppVal,myIcon,oppIcon,sub){
+      var r=document.createElement('div');r.className='bt-row';r.style.alignItems='start';r.style.paddingTop='5px';r.style.paddingBottom='5px';
+      var mySub=sub?'<span class="bt-adv-sub">'+sub+'</span>':'';
+      r.innerHTML='<div class="bt-adv-my"><span class="bt-adv-val pct-my">'+myVal+'</span>'+(myIcon?'<span style="font-size:11px"> '+myIcon+'</span>':'')+'</div>'
+        +'<div class="bt-lbl">'+label+mySub+'</div>'
+        +'<div class="bt-adv-opp"><span class="bt-adv-val pct-opp">'+oppVal+'</span>'+(oppIcon?'<span style="font-size:11px"> '+oppIcon+'</span>':'')+'</div>';
+      el.appendChild(r);
+    }
+    advRow('Production',myMatchAdv.prod+' pts',oppMatchAdv.prod+' pts','','','Attacks + Serves + Blocks');
+    advRow('Production %',fmtPct(myMatchAdv.prodPct),fmtPct(oppMatchAdv.prodPct),
+      perfIcon(myMatchAdv.prodPct,myMatchAdv.prodPct!==null&&myMatchAdv.prodPct<0.25,myMatchAdv.prodPct!==null&&myMatchAdv.prodPct>0.75),
+      perfIcon(oppMatchAdv.prodPct,oppMatchAdv.prodPct!==null&&oppMatchAdv.prodPct<0.25,oppMatchAdv.prodPct!==null&&oppMatchAdv.prodPct>0.75),
+      'Production / Total pts');
+    advRow('Production eff.',fmtPct(myMatchAdv.prodEff),fmtPct(oppMatchAdv.prodEff),
+      perfIcon(myMatchAdv.prodEff,myMatchAdv.prodEff!==null&&myMatchAdv.prodEff<0,myMatchAdv.prodEff!==null&&myMatchAdv.prodEff>0.50),
+      perfIcon(oppMatchAdv.prodEff,oppMatchAdv.prodEff!==null&&oppMatchAdv.prodEff<0,oppMatchAdv.prodEff!==null&&oppMatchAdv.prodEff>0.50),
+      '(Production − Opp errors) / Total pts');
+    advRow('Error dependency',fmtPct(myMatchAdv.errDep),fmtPct(oppMatchAdv.errDep),
+      perfIcon(myMatchAdv.errDep,myMatchAdv.errDep!==null&&myMatchAdv.errDep>0.60,myMatchAdv.errDep!==null&&myMatchAdv.errDep<0.10),
+      perfIcon(oppMatchAdv.errDep,oppMatchAdv.errDep!==null&&oppMatchAdv.errDep>0.60,oppMatchAdv.errDep!==null&&oppMatchAdv.errDep<0.10),
+      'Opp errors / Total pts');
+    var mySoSub=myMatchAdv.so.value!==null?myMatchAdv.so.successful+'/'+myMatchAdv.so.attempted+' attempts':'No data';
+    var oppSoSub=oppMatchAdv.so.value!==null?oppMatchAdv.so.successful+'/'+oppMatchAdv.so.attempted+' attempts':'No data';
+    advRow('Sideout %',fmtPct(myMatchAdv.so.value),fmtPct(oppMatchAdv.so.value),
+      perfIcon(myMatchAdv.so.value,myMatchAdv.so.value!==null&&myMatchAdv.so.value<0.33,myMatchAdv.so.value!==null&&myMatchAdv.so.value>=0.75),
+      perfIcon(oppMatchAdv.so.value,oppMatchAdv.so.value!==null&&oppMatchAdv.so.value<0.33,oppMatchAdv.so.value!==null&&oppMatchAdv.so.value>=0.75),
+      mySoSub+'  /  '+oppSoSub);
+  })();
+
+  // ── Serve run sequence: per-set subsections replacing the chips area ──
+  // Hide the simple 2-team row labels; render subsections into chips containers
+  var chipsMyEl=document.getElementById('viewer-chips-my');
+  var chipsOppEl=document.getElementById('viewer-chips-opp');
+  var runLblMy=document.getElementById('viewer-run-lbl-my');
+  var runLblOpp=document.getElementById('viewer-run-lbl-opp');
+  // Wrap the whole serve-run section dynamically
+  // We'll repurpose viewer-chips-my as a full-width subsection container
+  // by hiding the label row and rebuilding inside a wrapper
+  runLblMy.style.display='none';runLblOpp.style.display='none';
+  chipsMyEl.innerHTML='';chipsOppEl.innerHTML='';
+  // Build per-set subsections into chipsMyEl (we'll make it full-width)
+  chipsMyEl.style.cssText='width:100%;display:block';
+  sets.forEach(function(s){
+    var sub=makeSubsection('Set '+s.setNum);
+    var cols=document.createElement('div');cols.className='serve-cols';
+    var myDiv=document.createElement('div');
+    var oppDiv=document.createElement('div');
+    var myLbl=document.createElement('div');myLbl.className='serve-team-label';myLbl.textContent=myName;
+    var oppLbl=document.createElement('div');oppLbl.className='serve-team-label';oppLbl.textContent=oppName;
+    var myChips=document.createElement('div');myChips.className='serve-chips';
+    var oppChips=document.createElement('div');oppChips.className='serve-chips';
+    if(!s.myRuns.length){myChips.innerHTML='<span style="font-size:11px;color:#555">—</span>';}
+    else{s.myRuns.forEach(function(r,i){var c=document.createElement('span');c.className='chip';if(i===0&&s.firstServer==='my')c.classList.add('first-server');c.textContent=r;myChips.appendChild(c);});}
+    if(!s.oppRuns.length){oppChips.innerHTML='<span style="font-size:11px;color:#555">—</span>';}
+    else{s.oppRuns.forEach(function(r,i){var c=document.createElement('span');c.className='chip opp';if(i===0&&s.firstServer==='opp')c.classList.add('first-server');c.textContent=r;oppChips.appendChild(c);});}
+    myDiv.appendChild(myLbl);myDiv.appendChild(myChips);
+    oppDiv.appendChild(oppLbl);oppDiv.appendChild(oppChips);
+    cols.appendChild(myDiv);cols.appendChild(oppDiv);
+    sub.appendChild(cols);chipsMyEl.appendChild(sub);
+  });
+
+  // Reset momentum container — renderViewerVisualsFullMatch will rebuild it
+  var momWrap=document.getElementById('v-vis-mom-wrap');
+  momWrap.style.cssText='';
+  momWrap.innerHTML='';
+
+  renderViewerVisualsFullMatch(sets,myName,oppName);
+  showScreen('viewer');
+}
+
+/* ══════════════ Presentation mode ══════════════ */
+var vPresChart=null;
+
+function updatePresArrows(){
+  var prev=document.getElementById('pres-nav-prev');
+  var next=document.getElementById('pres-nav-next');
+  if(!prev||!next)return;
+  prev.disabled=vCurrentIdx===-1;
+  next.disabled=vCurrentIdx===S.savedSets.length-1;
+}
+
+function presNavigate(delta){
+  var newIdx=vCurrentIdx+delta;
+  if(newIdx<-1||newIdx>=S.savedSets.length)return;
+  vCurrentIdx=newIdx;
+  // Update vCopySet/vCurrentSet for openPresent to use
+  if(newIdx===-1){
+    vCopySet=null;
+    vCurrentSet=null;
+    // Build an aggregate set object for Full Match presentation
+    var sets=S.savedSets;
+    var totalMy=freshStats(),totalOpp=freshStats();
+    sets.forEach(function(s){ALL_CATS.forEach(function(c){totalMy[c]+=s.myStats[c];totalOpp[c]+=s.oppStats[c];});totalMy.total+=s.myStats.total;totalOpp.total+=s.oppStats.total;});
+    var allMyRuns=[],allOppRuns=[];
+    sets.forEach(function(s){s.myRuns.forEach(function(r){allMyRuns.push(r);});s.oppRuns.forEach(function(r){allOppRuns.push(r);});});
+    var presSet={setNum:null,myName:sets[0].myName,oppName:sets[0].oppName,
+      myTotal:sets.reduce(function(a,s){return a+(s.myTotal>s.oppTotal?1:0);},0),
+      oppTotal:sets.reduce(function(a,s){return a+(s.oppTotal>s.myTotal?1:0);},0),
+      myStats:totalMy,oppStats:totalOpp,myRuns:allMyRuns,oppRuns:allOppRuns,
+      myFailedSideouts:[],oppFailedSideouts:[],
+      firstServer:sets[0].firstServer};
+    vCopySet=presSet;
+  } else {
+    vCopySet=S.savedSets[newIdx];
+    vCurrentSet=null;
+  }
+  openPresent();
+}
+
+/* Renders the Full Match timeline: two top-level sections (My Team / Opponent),
+   each broken into per-set rows showing that set's pips + sideout letters + annotations. */
+function renderFullMatchTimeline(sets,el,CELL,GAP){
+  el.innerHTML='';
+  if(!sets.length){el.innerHTML='<span style="font-size:12px;color:var(--text2)">No sets</span>';return;}
+  CELL=CELL||24;GAP=GAP||3;
+
+  function buildTeamSection(teamKey,isOpp){
+    var section=document.createElement('div');
+    section.style.cssText='margin-bottom:14px';
+    // Team label
+    var teamLbl=document.createElement('div');
+    teamLbl.className='run-tl-label '+(isOpp?'opp':'my');
+    teamLbl.textContent=sets[0][isOpp?'oppName':'myName'];
+    section.appendChild(teamLbl);
+
+    sets.forEach(function(s,si){
+      var myRuns=s.myRuns,oppRuns=s.oppRuns;
+      var myFS=s.myFailedSideouts||[],oppFS=s.oppFailedSideouts||[];
+      var pips=buildPips(myRuns,oppRuns,s.firstServer);
+      if(!pips.length)return;
+
+      var fsArr=teamKey==='my'?myFS:oppFS;
+      // Build pipToLetter for this set
+      var pipToLetter={};
+      if(fsArr.length){
+        var fsIdx=0;
+        pips.forEach(function(pip,idx){
+          if(pip.scorer!==teamKey){pipToLetter[idx]=fsArr[fsIdx]||'';fsIdx++;}
+        });
+      }
+
+      // Annotation row (⚠️/⭐️) — show for all rows
+      var oppKey=teamKey==='my'?'opp':'my';
+      var warnRuns=longRunsFromPips(pips,teamKey,oppKey,3);
+      var starRuns=longRunsFromPips(pips,teamKey,teamKey,5);
+
+      var setRow=document.createElement('div');
+      setRow.style.cssText='margin-bottom:6px';
+
+      // Set label + annotation row combined
+      var headerRow=document.createElement('div');
+      headerRow.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:2px;min-height:16px';
+      var setLbl=document.createElement('span');
+      setLbl.style.cssText='font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;width:30px';
+      setLbl.textContent='Set '+(si+1);
+      headerRow.appendChild(setLbl);
+
+      // Annotation overlay positioned over the grid
+      if(warnRuns.length||starRuns.length){
+        var annWrap=document.createElement('div');
+        annWrap.style.cssText='position:relative;flex:1;height:16px';
+        warnRuns.forEach(function(r){
+          var leftPx=r.start*(CELL+GAP);
+          var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
+          var ann=document.createElement('div');
+          ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:10px;line-height:16px';
+          ann.textContent='⚠️';annWrap.appendChild(ann);
+        });
+        starRuns.forEach(function(r){
+          var leftPx=r.start*(CELL+GAP);
+          var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
+          var ann=document.createElement('div');
+          ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:10px;line-height:16px';
+          ann.textContent='⭐️';annWrap.appendChild(ann);
+        });
+        headerRow.appendChild(annWrap);
+      }
+      setRow.appendChild(headerRow);
+
+      // Pip grid
+      var grid=document.createElement('div');
+      grid.style.cssText='display:flex;flex-wrap:wrap;gap:'+GAP+'px;margin-left:36px'; // 36px = setLbl width + gap
+
+      // First-server marker
+      var firstMarker=-1;
+      if(s.firstServer===teamKey){
+        var firstRun=(teamKey==='my'?myRuns:oppRuns)[0];
+        if(firstRun===0){firstMarker=0;}
+        else{for(var pi=0;pi<pips.length;pi++){if(pips[pi].scorer===teamKey){firstMarker=pi;break;}}}
+      }
+
+      pips.forEach(function(pip,idx){
+        var cell=document.createElement('div');
+        cell.style.cssText='width:'+CELL+'px;height:'+CELL+'px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0';
+        if(pip.scorer===teamKey){
+          cell.style.background=teamKey==='my'?'#378ADD':'#D85A30';
+          cell.style.color='#fff';
+          cell.textContent=teamKey==='my'?pip.myNum:pip.oppNum;
+        } else {
+          cell.style.background='var(--bg3)';
+          var letter=pipToLetter[idx];
+          if(letter){cell.style.color='#666';cell.style.fontSize='8px';cell.textContent=letter;}
+        }
+        if(idx===firstMarker)cell.style.boxShadow='0 0 0 2px #fff';
+        grid.appendChild(cell);
+      });
+      setRow.appendChild(grid);
+      section.appendChild(setRow);
+    });
+    return section;
+  }
+
+  el.appendChild(buildTeamSection('my',false));
+  el.appendChild(buildTeamSection('opp',true));
+}
+
+/* Helper: find runs of scorer===scorerKey of length >= minLen from a pre-built pips array */
+function longRunsFromPips(pips,teamKey,scorerKey,minLen){
+  var runs=[],cur=null;
+  pips.forEach(function(pip,idx){
+    if(pip.scorer===scorerKey){
+      if(!cur)cur={start:idx,end:idx};else cur.end=idx;
+    } else {
+      if(cur){if(cur.end-cur.start+1>=minLen)runs.push(cur);cur=null;}
+    }
+  });
+  if(cur&&cur.end-cur.start+1>=minLen)runs.push(cur);
+  return runs;
+}
+
+function openPresent(){
+  var isFullMatch=vCurrentIdx===-1;
+  var s=vCurrentSet||vCopySet;
+
+  // For Full Match opened directly (not via presNavigate), build aggregate on the fly
+  if(isFullMatch&&!s){
+    var sets=S.savedSets;
+    if(!sets.length){showToast('No sets to present');return;}
+    var totalMy=freshStats(),totalOpp=freshStats();
+    sets.forEach(function(set){ALL_CATS.forEach(function(c){totalMy[c]+=set.myStats[c];totalOpp[c]+=set.oppStats[c];});totalMy.total+=set.myStats.total;totalOpp.total+=set.oppStats.total;});
+    var allMyRuns=[],allOppRuns=[];
+    sets.forEach(function(set){set.myRuns.forEach(function(r){allMyRuns.push(r);});set.oppRuns.forEach(function(r){allOppRuns.push(r);});});
+    s={setNum:null,myName:sets[0].myName,oppName:sets[0].oppName,
+      myTotal:sets.reduce(function(a,set){return a+(set.myTotal>set.oppTotal?1:0);},0),
+      oppTotal:sets.reduce(function(a,set){return a+(set.oppTotal>set.myTotal?1:0);},0),
+      myStats:totalMy,oppStats:totalOpp,myRuns:allMyRuns,oppRuns:allOppRuns,
+      myFailedSideouts:[],oppFailedSideouts:[],firstServer:sets[0].firstServer};
+    vCopySet=s;
+  }
+  if(!s){showToast('No set data to present');return;}
+
+  document.getElementById('pres-meta').textContent=isFullMatch?'Full Match':'Set '+s.setNum;
+  document.getElementById('pres-name-my').textContent=s.myName;
+  document.getElementById('pres-name-opp').textContent=s.oppName;
+  document.getElementById('pres-score-my').textContent=s.myTotal;
+  document.getElementById('pres-score-opp').textContent=s.oppTotal;
+
+  renderCompButterfly('pres-comp-butterfly',s.myStats,s.oppStats,s.myName,s.oppName);
+  if(isFullMatch){
+    renderFullMatchTimeline(S.savedSets,document.getElementById('pres-timeline'),24,3);
+  } else {
+    renderVisRunTimeline(s.myRuns,s.oppRuns,document.getElementById('pres-timeline'),s.myName,s.oppName,s.firstServer,24,3,s.myFailedSideouts,s.oppFailedSideouts);
+  }
+
+  updatePresArrows();
+  document.getElementById('screen-present').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+
+  // Measure available height for momentum chart
+  if(vPresChart){vPresChart.destroy();vPresChart=null;}
+  var presScreen=document.getElementById('screen-present');
+  var header=document.getElementById('pres-header');
+  var top=document.getElementById('pres-top');
+  var mid=document.getElementById('pres-mid');
+  var bot=document.getElementById('pres-bot');
+  var botLabel=bot.querySelector('.pres-section-label');
+  var screenH=presScreen.offsetHeight;
+  var usedH=header.offsetHeight+top.offsetHeight+mid.offsetHeight+(botLabel?botLabel.offsetHeight+10:20)+80;
+  var chartH=Math.max(120,screenH-usedH);
+  var wrap=document.getElementById('pres-mom-wrap');
+  wrap.style.height=chartH+'px';
+
+  // Build momentum — for Full Match, compute set boundary pip indices
+  var setBoundaries=[];
+  if(isFullMatch&&S.savedSets.length>1){
+    var pipCount=0;
+    S.savedSets.forEach(function(set,si){
+      var pips=buildPips(set.myRuns,set.oppRuns,set.firstServer);
+      pipCount+=pips.length;
+      if(si<S.savedSets.length-1)setBoundaries.push(pipCount);
+    });
+  }
+  vPresChart=buildMomChartWithBoundaries(document.getElementById('pres-momentum'),s.myRuns,s.oppRuns,s.myName,s.oppName,s.firstServer,setBoundaries);
+}
+
+function closePresent(){
+  document.getElementById('screen-present').classList.add('hidden');
+  document.body.style.overflow='';
+  if(vPresChart){vPresChart.destroy();vPresChart=null;}
+}
+
+function closeViewer(){
+  vDestroyCharts();
+  vCurrentSet=null;
+  vCurrentIdx=null;
+  vCopySet=null;
+  hide('btn-copy-set');
+  hide('btn-copy-match');
+  hide('btn-screenshot');
+  hide('btn-present');
+  // Restore momentum wrap to default single-chart state
+  var momWrap=document.getElementById('v-vis-mom-wrap');
+  if(momWrap){momWrap.style.cssText='position:relative;width:100%;height:180px';momWrap.innerHTML='<canvas id="v-vis-momentum"></canvas>';}
+  showScreen('tracker');
+}
+
+function captureScreenshot(){
+  var btn=document.getElementById('btn-screenshot');
+  var origText=btn.textContent;
+  btn.textContent='Capturing…';btn.disabled=true;
+
+  var target=document.getElementById('screen-viewer');
+  var stickyHeader=document.getElementById('viewer-sticky-header');
+  var origPos=stickyHeader.style.position;
+  stickyHeader.style.position='relative';
+
+  html2canvas(target,{
+    backgroundColor:'#1a1a1a',
+    scale:2,
+    useCORS:true,
+    width:target.scrollWidth,
+    height:target.scrollHeight,
+    windowWidth:target.scrollWidth,
+    scrollX:0,scrollY:0
+  }).then(function(canvas){
+    stickyHeader.style.position=origPos;
+    var title=(document.getElementById('viewer-title').textContent||'set').replace(/\s+/g,'-').toLowerCase();
+    var dataUrl=canvas.toDataURL('image/png');
+
+    var isIOS=/iP(hone|ad|od)/.test(navigator.userAgent);
+    if(isIOS){
+      var win=window.open('','_blank');
+      if(win){
+        win.document.write('<html><head><title>KSV '+title+'</title></head><body style="margin:0;background:#000">'
+          +'<p style="color:#fff;font-family:sans-serif;font-size:13px;padding:10px">Long-press the image → Save to Photos or Save to Files</p>'
+          +'<img src="'+dataUrl+'" style="width:100%;display:block"></body></html>');
+        win.document.close();
+      } else {
+        showToast('Allow pop-ups to view the image');
+      }
+    } else {
+      // Append to DOM so Firefox triggers the download reliably
+      var link=document.createElement('a');
+      link.download='ksv-'+title+'.png';
+      link.href=dataUrl;
+      link.style.display='none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(function(){document.body.removeChild(link);},200);
+      showToast('Image saved to Downloads');
+    }
+    btn.textContent=origText;btn.disabled=false;
+  }).catch(function(err){
+    stickyHeader.style.position=origPos;
+    showToast('Screenshot failed — '+err.message);
+    btn.textContent=origText;btn.disabled=false;
+  });
+}
+
+function askNewMatch(){hide('reset-confirm');hide('import-panel');show('newmatch-confirm');}
+function closeNewMatch(){hide('newmatch-confirm');}
+function confirmNewMatch(){S.savedSets=[];hide('saved-area');document.getElementById('saved-list').innerHTML='';closeNewMatch();showToast('All sets cleared — new match ready');}
+
+function copyMatchTSV(){
+  if(!S.savedSets.length){showToast('No sets to copy');return;}
+  var T='\t';
+  var lines=S.savedSets.map(function(s){
+    var my=s.myStats,opp=s.oppStats;
+    var myEarned=my.attack+my.block+my.serve;
+    var oppEarned=opp.attack+opp.block+opp.serve;
+    var myErrTotal=ERRORS.reduce(function(a,c){return a+my[c];},0);
+    var oppErrTotal=ERRORS.reduce(function(a,c){return a+opp[c];},0);
+    return[
+      s.firstServer||'',s.setNum,
+      my.total,myEarned,my.attack,my.block,my.serve,
+      myErrTotal,my['atk-net'],my['atk-out'],my['srv-net'],my['srv-out'],my.other,
+      s.myRuns.join(','),
+      opp.total,oppEarned,opp.attack,opp.block,opp.serve,
+      oppErrTotal,opp['atk-net'],opp['atk-out'],opp['srv-net'],opp['srv-out'],opp.other,
+      s.oppRuns.join(','),
+      (s.myFailedSideouts||[]).join(','),
+      (s.oppFailedSideouts||[]).join(',')
+    ].join(T);
+  });
+  var text=lines.join('\n');
+  navigator.clipboard.writeText(text).then(function(){
+    var btn=document.getElementById('btn-copy-match');
+    var orig=btn.textContent;
+    btn.textContent='Copied!';btn.style.color='#7EB8FF';btn.style.borderColor='#378ADD';
+    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
+  }).catch(function(){showToast('Copy failed — try a different browser');});
+}
+function askImport(){
+  hide('reset-confirm');hide('newmatch-confirm');
+  document.getElementById('import-input').value='';
+  document.getElementById('import-error').style.display='none';
+  show('import-panel');
+  setTimeout(function(){document.getElementById('import-input').focus();},50);
+}
+function closeImport(){hide('import-panel');}
+
+function importMatch(){
+  var raw=document.getElementById('setup-import-input').value;
+  var errEl=document.getElementById('setup-import-error');
+  errEl.style.display='none';
+
+  var myName=document.getElementById('inp-my').value.trim()||'My team';
+  var oppName=document.getElementById('inp-opp').value.trim()||'Opponent';
+
+  var lines=raw.split(/\r?\n/).filter(Boolean);
+  if(!lines.length){
+    errEl.textContent='Paste at least one set row.';errEl.style.display='block';return;
+  }
+
+  var sets=[];
+  for(var i=0;i<lines.length;i++){
+    var parsed=parseTSVRow(lines[i]);
+    if(!parsed){
+      errEl.textContent='Could not parse line '+(i+1)+'. Check the format and try again.';
+      errEl.style.display='block';return;
+    }
+    // Build my/opp stats objects
+    var myStats=freshStats();
+    myStats.attack=parsed.myAttack;myStats.block=parsed.myBlock;myStats.serve=parsed.myServe;
+    myStats['atk-net']=parsed.myAtkNet;myStats['atk-out']=parsed.myAtkOut;
+    myStats['srv-net']=parsed.mySrvNet;myStats['srv-out']=parsed.mySrvOut;
+    myStats.other=parsed.myOther;myStats.total=parsed.myTotal;
+    var oppStats=freshStats();
+    oppStats.attack=parsed.oppAttack;oppStats.block=parsed.oppBlock;oppStats.serve=parsed.oppServe;
+    oppStats['atk-net']=parsed.oppAtkNet;oppStats['atk-out']=parsed.oppAtkOut;
+    oppStats['srv-net']=parsed.oppSrvNet;oppStats['srv-out']=parsed.oppSrvOut;
+    oppStats.other=parsed.oppOther;oppStats.total=parsed.oppTotal;
+
+    // Determine finalRunTeam from run array lengths + firstServer
+    var fs=parsed.firstServer;
+    var myRC=parsed.myRuns.length,oppRC=parsed.oppRuns.length;
+    var finalRunTeam;
+    if(fs==='my') finalRunTeam=myRC>oppRC?'my':'opp';
+    else if(fs==='opp') finalRunTeam=oppRC>myRC?'opp':'my';
+    else finalRunTeam=myRC>=oppRC?'my':'opp';
+
+    sets.push({
+      setNum:parsed.setNum||sets.length+1,
+      myName:myName,oppName:oppName,
+      myTotal:parsed.myTotal,oppTotal:parsed.oppTotal,
+      myStats:myStats,oppStats:oppStats,
+      myRuns:parsed.myRuns.slice(),oppRuns:parsed.oppRuns.slice(),
+      myFailedSideouts:parsed.myFailedSideouts||[],
+      oppFailedSideouts:parsed.oppFailedSideouts||[],
+      firstServer:fs,
+      finalRunTeam:finalRunTeam
+    });
+  }
+
+  // Load into app — set team names and go to tracker with saved sets shown
+  S.myName=myName;S.oppName=oppName;
+  S.server=null;S.firstServer=null;S.runTeam=null;S.run=0;
+  S.myRuns=[];S.oppRuns=[];S.my=freshStats();S.opp=freshStats();S.history=[];
+  S.savedSets=sets;
+
+  // Update tracker labels
+  ['lbl-my','collbl-my','srv-lbl-my'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.textContent=myName;
+  });
+  ['lbl-opp','collbl-opp','srv-lbl-opp'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.textContent=oppName;
+  });
+
+  document.getElementById('setup-import-input').value='';
+  renderSavedList();
+  show('saved-area');
+  showScreen('tracker');
+  render();
+  showToast(sets.length+' set'+(sets.length===1?'':' s')+' imported');
+}
+
+function parseTSVRow(raw){
+  var line=raw.split(/\r?\n/).filter(Boolean)[0];
+  if(!line)return null;
+  var cols=line.split('\t');
+  // 26 cols = old format (no sideout detail), 28 cols = new format
+  if(cols.length<26)return null;
+  function int(v){var n=parseInt(v,10);return isNaN(n)?0:n;}
+  function runs(v){
+    v=(v||'').trim();
+    if(!v||v===''||v==='0')return[];
+    return v.split(',').map(function(x){var n=parseInt(x.trim(),10);return isNaN(n)?0:n;});
+  }
+  function letters(v){
+    v=(v||'').trim();
+    if(!v)return[];
+    return v.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  }
+  var fs=cols[0].trim();
+  var myAtkNet=int(cols[8]), myAtkOut=int(cols[9]), mySrvNet=int(cols[10]), mySrvOut=int(cols[11]), myOther=int(cols[12]);
+  var oppAtkNet=int(cols[20]), oppAtkOut=int(cols[21]), oppSrvNet=int(cols[22]), oppSrvOut=int(cols[23]), oppOther=int(cols[24]);
+  // Sparse formats (e.g. older sheet exports) only track the error total (col 7 / col 19),
+  // not the subcategory breakdown. When all five subcategories are 0 but the total column
+  // has a value, fall back to dumping the whole total into "other" so stats/butterfly
+  // charts still show the correct error count, just without the breakdown. Never triggers
+  // when subcategory data is actually present.
+  if(myAtkNet+myAtkOut+mySrvNet+mySrvOut+myOther===0){
+    var myErrTotal=int(cols[7]);
+    if(myErrTotal!==0) myOther=myErrTotal;
+  }
+  if(oppAtkNet+oppAtkOut+oppSrvNet+oppSrvOut+oppOther===0){
+    var oppErrTotal=int(cols[19]);
+    if(oppErrTotal!==0) oppOther=oppErrTotal;
+  }
+  return{
+    firstServer: (fs==='my'||fs==='opp')?fs:null,
+    setNum:    int(cols[1]),
+    myTotal:   int(cols[2]),
+    myAttack:  int(cols[4]),
+    myBlock:   int(cols[5]),
+    myServe:   int(cols[6]),
+    myAtkNet:  myAtkNet,
+    myAtkOut:  myAtkOut,
+    mySrvNet:  mySrvNet,
+    mySrvOut:  mySrvOut,
+    myOther:   myOther,
+    myRuns:    runs(cols[13]),
+    oppTotal:  int(cols[14]),
+    oppAttack: int(cols[16]),
+    oppBlock:  int(cols[17]),
+    oppServe:  int(cols[18]),
+    oppAtkNet: oppAtkNet,
+    oppAtkOut: oppAtkOut,
+    oppSrvNet: oppSrvNet,
+    oppSrvOut: oppSrvOut,
+    oppOther:  oppOther,
+    oppRuns:   runs(cols[25]),
+    // Optional cols 26 & 27 — failed sideout letter codes
+    myFailedSideouts:  cols.length>26?letters(cols[26]):[],
+    oppFailedSideouts: cols.length>27?letters(cols[27]):[],
+  };
+}
+
+function confirmImport(){
+  var raw=document.getElementById('import-input').value;
+  var errEl=document.getElementById('import-error');
+  errEl.style.display='none';
+
+  var parsed=parseTSVRow(raw);
+  if(!parsed){
+    errEl.textContent='Could not parse — make sure you paste a single tab-separated row from Copy plain text.';
+    errEl.style.display='block';
+    return;
+  }
+
+  var hasData=S.my.total+S.opp.total>0;
+  if(hasData){
+    if(!confirm('This will overwrite the current set in progress. Continue?'))return;
+  }
+
+  // Build stats objects
+  var myStats=freshStats();
+  myStats.attack  = parsed.myAttack;
+  myStats.block   = parsed.myBlock;
+  myStats.serve   = parsed.myServe;
+  myStats['atk-net'] = parsed.myAtkNet;
+  myStats['atk-out'] = parsed.myAtkOut;
+  myStats['srv-net'] = parsed.mySrvNet;
+  myStats['srv-out'] = parsed.mySrvOut;
+  myStats.other   = parsed.myOther;
+  myStats.total   = parsed.myTotal;
+
+  var oppStats=freshStats();
+  oppStats.attack  = parsed.oppAttack;
+  oppStats.block   = parsed.oppBlock;
+  oppStats.serve   = parsed.oppServe;
+  oppStats['atk-net'] = parsed.oppAtkNet;
+  oppStats['atk-out'] = parsed.oppAtkOut;
+  oppStats['srv-net'] = parsed.oppSrvNet;
+  oppStats['srv-out'] = parsed.oppSrvOut;
+  oppStats.other   = parsed.oppOther;
+  oppStats.total   = parsed.oppTotal;
+
+  // Determine serve state from run arrays:
+  // Whoever has more runs served first. Last run belongs to whoever served last.
+  var myFirst=parsed.myRuns.length>=parsed.oppRuns.length;
+  // The last completed run tells us who was serving last; current server is the other team
+  // (since a run ends when the other team sides out)
+  // We reconstruct: all runs are "completed", so current runTeam = whoever served last,
+  // and current run = 0 (no points yet in new possession — but we import as a snapshot
+  // so we set run to 0 and let server be ambiguous, or derive from run parity)
+  var myRunCount=parsed.myRuns.length, oppRunCount=parsed.oppRuns.length;
+  var lastServer= myFirst
+    ? (myRunCount>oppRunCount ? 'my' : 'opp')
+    : (oppRunCount>myRunCount ? 'opp' : 'my');
+
+  S.my      = myStats;
+  S.opp     = oppStats;
+  S.myRuns  = parsed.myRuns.slice();
+  S.oppRuns = parsed.oppRuns.slice();
+  S.myFailedSideouts = parsed.myFailedSideouts||[];
+  S.oppFailedSideouts = parsed.oppFailedSideouts||[];
+  S.run     = 0;
+  S.runTeam = lastServer;
+  S.server  = lastServer;
+  S.firstServer = parsed.firstServer;
+  S.history = [];
+
+  closeImport();
+  showToast('Set '+parsed.setNum+' imported');
+  showScreen('tracker');
+  render();
+}
+
+function renderSavedList(){
+  var el=document.getElementById('saved-list');el.innerHTML='';
+  // Permanent "Full Match" entry at top
+  var fm=document.createElement('div');
+  fm.className='set-card full-match-card';
+  fm.innerHTML='<div><div class="set-card-num">Full Match</div><div class="set-card-score">All '+(S.savedSets.length)+' set'+(S.savedSets.length===1?'':'s')+' · aggregated stats</div></div><div class="set-card-arrow">›</div>';
+  fm.addEventListener('click',openFullMatch);
+  el.appendChild(fm);
+  // Individual sets
+  S.savedSets.forEach(function(s,idx){
+    var d=document.createElement('div');d.className='set-card';
+    d.innerHTML='<div><div class="set-card-num">Set '+s.setNum+'</div><div class="set-card-score">'+s.myName+' <strong>'+s.myTotal+'</strong> – <strong>'+s.oppTotal+'</strong> '+s.oppName+'</div></div><div class="set-card-arrow">›</div>';
+    d.addEventListener('click',function(){openViewer(idx);});el.appendChild(d);
+  });
+}
+
+function render(){
+  document.getElementById('sc-my').textContent=S.my.total;document.getElementById('sc-opp').textContent=S.opp.total;
+  ALL_CATS.forEach(function(c){document.getElementById('v-my-'+c).textContent=S.my[c];document.getElementById('v-opp-'+c).textContent=S.opp[c];});
+  document.getElementById('v-my-errtotal').textContent=ERRORS.reduce(function(a,c){return a+S.my[c];},0);
+  document.getElementById('v-opp-errtotal').textContent=ERRORS.reduce(function(a,c){return a+S.opp[c];},0);
+  var myCurrentOppRun=(S.runTeam==='opp')?S.run:0,oppCurrentOppRun=(S.runTeam==='my')?S.run:0;
+  var myErrSum=ERRORS.reduce(function(a,c){return a+S.my[c];},0);
+  var oppErrSum=ERRORS.reduce(function(a,c){return a+S.opp[c];},0);
+  renderAdv(calcAdv(S.my,S.oppRuns,myCurrentOppRun,false,oppErrSum),calcAdv(S.opp,S.myRuns,oppCurrentOppRun,false,myErrSum));
+  var msb=document.getElementById('my-serve-badge'),osb=document.getElementById('opp-serve-badge');
+  S.server==='my'?msb.classList.remove('hidden'):msb.classList.add('hidden');
+  S.server==='opp'?osb.classList.remove('hidden'):osb.classList.add('hidden');
+  document.getElementById('my-score-side').style.outline=S.server==='my'?'2px solid #378ADD':'';
+  document.getElementById('opp-score-side').style.outline=S.server==='opp'?'2px solid #D85A30':'';
+  document.getElementById('run-my').textContent=S.runTeam==='my'?'Run: '+S.run:'';
+  document.getElementById('run-opp').textContent=S.runTeam==='opp'?'Run: '+S.run:'';
+  var mc=document.getElementById('chips-my'),oc=document.getElementById('chips-opp');mc.innerHTML='';oc.innerHTML='';
+  S.myRuns.forEach(function(r,i){var e=document.createElement('span');e.className='chip';if(i===0&&S.firstServer==='my')e.classList.add('first-server');e.textContent=r;mc.appendChild(e);});
+  S.oppRuns.forEach(function(r,i){var e=document.createElement('span');e.className='chip opp';if(i===0&&S.firstServer==='opp')e.classList.add('first-server');e.textContent=r;oc.appendChild(e);});
+  if(S.runTeam==='my'){var e=document.createElement('span');e.className='chip current';if(!S.myRuns.length&&S.firstServer==='my')e.classList.add('first-server');e.textContent=S.run;mc.appendChild(e);}
+  if(S.runTeam==='opp'){var e=document.createElement('span');e.className='chip current opp';if(!S.oppRuns.length&&S.firstServer==='opp')e.classList.add('first-server');e.textContent=S.run;oc.appendChild(e);}
+  renderVisuals();
+}
+
+var toastTimer=null;
+function showToast(msg){clearTimeout(toastTimer);var el=document.getElementById('toast-area');el.innerHTML='<div class="toast">'+msg+'</div>';toastTimer=setTimeout(function(){el.innerHTML='';},2500);}
+
+// Scroll indicators
+attachButtons();
+
+// ── URL hash import: #/import?my=<enc>&opp=<enc>&data=<enc> ──
+(function(){
+  if(!/^#\/import\?/.test(location.hash))return;
+  try{
+    var params=new URLSearchParams(location.hash.replace(/^#\/import\?/,''));
+    var my=decodeURIComponent(params.get('my')||'');
+    var opp=decodeURIComponent(params.get('opp')||'');
+    var data=decodeURIComponent(params.get('data')||'');
+    if(!data)return;
+    document.getElementById('inp-my').value=my;
+    document.getElementById('inp-opp').value=opp;
+    document.getElementById('setup-import-input').value=data;
+    importMatch();
+    if(S.savedSets.length){
+      openFullMatch();
+    }
+  }catch(e){console.warn('URL import failed:',e);}
+})();
+</script>
+</body>
+</html>

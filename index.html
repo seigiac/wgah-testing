@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSVolleyball Archive</title>
+<style>
+:root{
+  --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+  --text:#e8e8e8;--text2:#999;--text3:#555;
+  --border:#3a3a3a;--border2:#2a2a2a;
+  --radius:8px;--radius-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --blue:#378ADD;--blue-light:#7EB8FF;--blue-bg:#0C2440;
+  --green:#2EAB6A;--green-bg:#173404;
+  --orange:#FF9A7C;--orange-bg:#3A2008;
+  --red:#FF8080;--red-bg:#3A1208;
+  --gray-bg:#2e2e2e;
+}
+*{box-sizing:border-box}
+body{font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);margin:0;padding-bottom:60px}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px}
+.topbar{position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:0.5px solid var(--border);padding:16px;text-align:center}
+.topbar-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.topbar h1{font-size:16px;font-weight:500;margin:0;color:var(--text)}
+.mode-toggle{display:flex;gap:8px;justify-content:center}
+.mode-btn{padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font)}
+.mode-btn.active{background:var(--blue-bg);color:var(--blue-light);border-color:var(--blue)}
+.filters{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filters-left{display:flex;gap:8px;flex-wrap:wrap}
+.filters-right{display:flex;gap:8px;flex-wrap:wrap}
+.link-btn{padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg3);color:var(--blue-light);font-size:12px;cursor:pointer;font-family:var(--font)}
+.season-links-row{display:flex;gap:6px}
+select{background:var(--bg2);color:var(--text);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:12px;font-family:var(--font)}
+.match-list{display:flex;flex-direction:column;gap:6px}
+.match-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-radius:var(--radius);padding:12px 14px;cursor:pointer;border:0.5px solid transparent;gap:12px}
+.match-row:hover{border-color:var(--border)}
+.row-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.season-pill{font-size:10px;padding:2px 8px;border-radius:var(--radius);white-space:nowrap;font-weight:500}
+.pill-winter{background:var(--blue-bg);color:var(--blue-light)}
+.pill-spring{background:var(--green-bg);color:var(--green)}
+.pill-fall{background:var(--orange-bg);color:var(--orange)}
+.match-row .opp{font-size:14px;color:var(--text)}
+.match-row .meta{font-size:11px;color:var(--text2)}
+.badge{font-size:12px;padding:4px 12px;border-radius:var(--radius);white-space:nowrap;font-weight:500;flex-shrink:0}
+.badge-col{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.stats-pill{font-size:9px;padding:2px 8px;border-radius:var(--radius);background:var(--bg3);color:var(--text2);white-space:nowrap;border:0.5px solid var(--border)}
+.badge-w{background:var(--green-bg);color:var(--green)}
+.badge-l{background:var(--red-bg);color:var(--red)}
+.badge-t{background:var(--gray-bg);color:var(--text2)}
+.badge-upcoming{background:var(--bg3);color:var(--text3);border:0.5px solid var(--border)}
+.season-info-card{background:var(--bg2);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.season-header{margin-bottom:16px}
+.season-tab-toggle{display:flex;gap:8px;margin-bottom:16px}
+.season-tab-btn{padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font)}
+.season-tab-btn.active{background:var(--blue-bg);color:var(--blue-light);border-color:var(--blue)}
+.stats-subtoggle-wrap{display:flex;justify-content:center;margin:2px 0 18px}
+.stats-subtoggle{display:inline-flex;background:var(--bg3);border-radius:999px;padding:3px;gap:2px}
+.stats-sub-btn{padding:5px 16px;border-radius:999px;border:none;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font)}
+.stats-sub-btn.active{background:var(--orange-bg);color:var(--orange)}
+.stats-chart-wrap{margin-bottom:16px}
+.stats-chart{width:100%;height:155px;display:block}
+.stats-chart-legend{display:flex;justify-content:center;gap:20px;font-size:11px;color:var(--text2);margin-top:6px}
+.stats-chart-legend span{display:flex;align-items:center;gap:5px}
+.stats-chart-legend .dot{width:8px;height:8px;border-radius:50%}
+.season-stats-table{width:100%;border-collapse:collapse;font-size:12px}
+.season-stats-table th{font-size:10px;color:var(--text3);font-weight:500;text-align:center;padding:6px 4px;text-transform:uppercase;letter-spacing:.03em}
+.season-stats-table td{text-align:center;padding:8px 4px;border-top:0.5px solid var(--border2);color:var(--text)}
+.season-stats-table tr{cursor:pointer}
+.season-stats-table tr:hover td{background:var(--bg2)}
+.season-stats-table tr.stats-summary-row{cursor:default;font-weight:500}
+.season-stats-table tr.stats-summary-row td{background:var(--bg2);color:var(--text);border-top:none;border-bottom:1px solid var(--border)}
+.season-stats-table tr.stats-summary-row:hover td{background:var(--bg2)}
+.season-stats-table th.stat-row-label,.season-stats-table td.stat-row-label{text-align:left;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
+.season-header .title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}
+.season-select-col{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.season-header h2{font-size:20px;font-weight:500;margin:0;color:var(--text)}
+.season-header .sub{font-size:12px;color:var(--text2)}
+.record{font-size:12px;color:var(--text2);margin-bottom:8px}
+.record b{color:var(--text)}
+.back-link{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--blue-light);cursor:pointer;background:none;border:none;padding:0;margin-bottom:16px;font-family:var(--font)}
+.detail-link{color:var(--blue-light);cursor:pointer}
+.detail-link:hover{text-decoration:underline}
+.detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px}
+.detail-header h2{font-size:18px;font-weight:500;margin:0 0 4px;color:var(--text)}
+.detail-header .meta{font-size:12px;color:var(--text2);line-height:1.6}
+.video-wrap{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:8px}
+.video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.no-video{background:var(--bg2);border-radius:var(--radius-lg);padding:40px;text-align:center;color:var(--text3);font-size:12px;margin-bottom:16px}
+.empty-note{background:var(--bg2);border-radius:var(--radius);padding:20px;text-align:center;color:var(--text3);font-size:12px;margin-bottom:16px}
+.section-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px}
+.roster{font-size:13px;color:var(--text);line-height:1.8}
+.roster .subs{color:var(--text2);font-size:12px}
+.empty{color:var(--text3);font-size:12px;padding:24px 0;text-align:center}
+.box-score{width:100%;border-collapse:collapse;margin-bottom:16px}
+.box-score th{font-size:10px;color:var(--text3);font-weight:500;text-align:center;padding:6px 4px;text-transform:uppercase;letter-spacing:.03em}
+.box-score th.team-col{text-align:left}
+.box-score th.final-col{border-left:1px solid var(--border)}
+.box-score td{font-size:14px;color:var(--text);text-align:center;padding:8px 4px;border-top:0.5px solid var(--border2)}
+.box-score td.team-name{text-align:left;font-size:13px;color:var(--text2)}
+.box-score td.final-col{border-left:1px solid var(--border);font-weight:500}
+.box-score td.set-won{color:var(--green);font-weight:500}
+.box-score tr.winner td.team-name{color:var(--text)}
+.box-score tr.winner td.final-col{color:var(--green)}
+.box-score td.set-empty{color:var(--text3)}
+.ksv-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--blue-light);background:var(--blue-bg);border:0.5px solid var(--blue);border-radius:var(--radius);padding:8px 14px;margin-top:8px;margin-right:8px;cursor:pointer}
+.highlights-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--orange);background:var(--orange-bg);border:0.5px solid var(--orange);border-radius:var(--radius);padding:8px 14px;margin-top:8px;margin-bottom:8px;cursor:pointer}
+.video-toggle{display:flex;gap:8px;margin-bottom:8px}
+.video-tab{padding:6px 14px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font)}
+.video-tab.active{background:var(--blue-bg);color:var(--blue-light);border-color:var(--blue)}
+.err-butterfly{width:100%}
+.err-bf-header{display:grid;grid-template-columns:1fr 90px 1fr;gap:4px;margin-bottom:8px}
+.err-bf-head-left{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#7EB8FF;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.err-bf-head-center{font-size:11px;color:var(--text3);text-align:center}
+.err-bf-head-right{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#FF9A7E;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.err-bf-row{display:grid;grid-template-columns:1fr 90px 1fr;gap:4px;align-items:center;margin-bottom:6px}
+.err-bf-bar-left{display:flex;justify-content:flex-end;align-items:center;gap:4px}
+.err-bf-bar-right{display:flex;justify-content:flex-start;align-items:center;gap:4px}
+.err-bf-label{font-size:11px;color:var(--text2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.err-bf-fill{height:12px;border-radius:2px;min-width:1px}
+.err-bf-val{font-size:12px;font-weight:500;color:var(--text2);flex-shrink:0;min-width:16px}
+#team-switcher{display:none !important}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-row">
+    <h1>KSVolleyball Archive</h1>
+    <select id="team-switcher" onchange="goTeam(this.value)"></select>
+  </div>
+  <div class="mode-toggle">
+    <button class="mode-btn" id="btn-season" onclick="goCurrentSeason()">Single Season</button>
+    <button class="mode-btn" id="btn-all" onclick="goAllSeasons()">All Matches</button>
+  </div>
+</div>
+<div class="wrap" id="app"></div>
+
+<script>
+const MATCHES = [{"id": "Winter2023Week0", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "0", "weekNum": 0, "date": "1/4/23", "time": "18:30", "type": "Exhibition", "division": "Wednesday Coed Intermediate Newbies", "location": "Walter Moberly Elementary", "opponent": "Stinky Tofu", "lineup": "maria,gorman,calvin,derek,seigi", "subs": "michelle", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/Hy3TIusuyOY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week1", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "1", "weekNum": 1, "date": "1/11/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Intermediate Newbies", "location": "Lecole Bilingue Elementary", "opponent": "bolleyballers", "lineup": "maria,brooke,gorman,calvin,derek,seigi", "subs": "carmen", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/e43_24c4pXE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week2", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "2", "weekNum": 2, "date": "1/18/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Intermediate Newbies", "location": "Lord Kitchener Elementary", "opponent": "RPG-Wed-Int-2023-1", "lineup": "maria,brooke,calvin,derek,seigi", "subs": "charlotte", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/mdrNF1Hg1aY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week3", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "3", "weekNum": 3, "date": "1/25/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Intermediate Newbies", "location": "Lecole Bilingue Elementary", "opponent": "Win Sum Dim Sum", "lineup": "sheima,maria,brooke,gorman,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/wLynMAONw90", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week4", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "4", "weekNum": 4, "date": "2/1/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Intermediate Newbies", "location": "Captain Cook Elementary", "opponent": "Stinky Tofu", "lineup": "maria,brooke,gorman,calvin,derek,seigi", "subs": "haylea", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/HWu6xSZz5dE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week5", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "5", "weekNum": 5, "date": "2/8/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "General Gordon Elementary", "opponent": "Shitters & Tea", "lineup": "sheima,maria,brooke,gorman,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/NN6gt43ssYk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week6", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "6", "weekNum": 6, "date": "2/15/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Abbies", "lineup": "sheima,gorman,calvin,derek,seigi", "subs": "carmen,jane", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/dhYnz43kELY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week7", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "7", "weekNum": 7, "date": "2/22/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Walter Moberly Elementary", "opponent": "Pop-up Blockers", "lineup": "gorman,calvin,derek,seigi", "subs": "fion,jane,isis", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/eC5TXOms8cU", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week8", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "8", "weekNum": 8, "date": "3/1/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Jules Quesnel Elementary", "opponent": "Kiss My Ace", "lineup": "sheima,maria,calvin,derek,seigi", "subs": "judy", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/d6uSnuH0XTA", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week9", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "9", "weekNum": 9, "date": "3/8/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "maria,brooke,calvin,derek,seigi", "subs": "justine", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/Ib48pjSD2LI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week10", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "10", "weekNum": 10, "date": "3/29/23", "time": "20:00", "type": "Playoffs", "division": "Wednesday Coed Int Plus", "location": "Annie B Jamieson Elementary", "opponent": "Abbies", "lineup": "sheima,maria,brooke,gorman,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/GJYF9IDJCz0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week11", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "11", "weekNum": 11, "date": "4/5/23", "time": "18:40", "type": "Playoffs", "division": "Wednesday Coed Int Plus", "location": "General Gordon Elementary", "opponent": "Kiss My Ace", "lineup": "sheima,maria,brooke,gorman,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/MHMnXKKWd-s", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2023Week12", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Winter", "week": "12", "weekNum": 12, "date": "4/12/23", "time": "20:15", "type": "Playoffs", "division": "Wednesday Coed Int Plus", "location": "Lecole Bilingue Elementary", "opponent": "Chewblockas", "lineup": "sheima,maria,brooke,gorman,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/-EFb5m3VTCc", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week1", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "1", "weekNum": 1, "date": "4/19/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Over the Top", "lineup": "sheima,maria,calvin,derek,seigi", "subs": "judy", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/GjcSpdZogcE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week2", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "2", "weekNum": 2, "date": "4/26/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lecole Bilingue Elementary", "opponent": "Sweet Digs", "lineup": "sheima,maria,brooke,gorman,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week3", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "3", "weekNum": 3, "date": "5/3/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lecole Bilingue Elementary", "opponent": "Soft Serves", "lineup": "sheima,brooke,gorman,calvin,derek,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/WUO8jRM5wo0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week4", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "4", "weekNum": 4, "date": "5/10/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Elsie Roy Elementary", "opponent": "Mimo-pikiby", "lineup": "sheima,maria,derek,seigi", "subs": "wilson,hedy", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/YH0ftWf7NiA", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week5", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "5", "weekNum": 5, "date": "5/17/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Safe Sets", "lineup": "sheima,maria,brooke,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/8QCfJ4LMJDM", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week6", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "6", "weekNum": 6, "date": "5/24/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Over the Top", "lineup": "sheima,maria,brooke,gorman,derek,seigi", "subs": null, "sw": 2, "sl": 2, "result": "T", "video": "https://youtu.be/-BbBjskbJtM", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week7", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "7", "weekNum": 7, "date": "5/31/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Sweet Digs", "lineup": "sheima,maria,brooke,gorman,calvin,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/VUcFKemi-bs", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week8", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "8", "weekNum": 8, "date": "6/7/23", "time": "20:00", "type": "Exhibition", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Safe Sets", "lineup": "sheima,maria,brooke,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/Jvyvn-pFOo0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week9", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "9", "weekNum": 9, "date": "6/14/23", "time": "20:15", "type": "Playoffs", "division": "Wednesday Coed Int Plus", "location": "Lecole Bilingue Elementary", "opponent": "Mimo-pikiby", "lineup": "sheima,maria,brooke,calvin,derek,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/dsXrjEppva0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2023Week10", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Spring", "week": "10", "weekNum": 10, "date": "6/21/23", "time": "20:00", "type": "Playoffs", "division": "Wednesday Coed Int Plus", "location": "Lord Kitchener Elementary", "opponent": "Safe Sets", "lineup": "sheima,maria,gorman,calvin,seigi", "subs": "mariana", "sw": 0, "sl": 3, "result": "L", "video": "https://youtu.be/wZhEIaaMJsE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week1", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "1", "weekNum": 1, "date": "10/4/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "The Crows", "lineup": "sheima,maria,brooke,calvin,colin,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/B2UzxW-Y_DY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week2", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "2", "weekNum": 2, "date": "10/11/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Laura Secord Elementary", "opponent": "Flaming Flockers", "lineup": "sheima,maria,brooke,calvin,colin,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/tOYl7CrnAi0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week3", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "3", "weekNum": 3, "date": "10/18/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Jules Quesnel Elementary", "opponent": "Chewblockas", "lineup": "sheima,maria,brooke,calvin,colin", "subs": "nick", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/f6lUhn-1nGg", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week4", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "4", "weekNum": 4, "date": "10/25/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Jules Quesnel Elementary", "opponent": "Oddballs", "lineup": "sheima,maria,brooke,colin", "subs": "vincent,rene", "sw": 0, "sl": 3, "result": "L", "video": "https://youtu.be/mlpzTths57k", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week5", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "5", "weekNum": 5, "date": "11/1/23", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Lord Kitchener Elementary", "opponent": "noname", "lineup": "sheima,brooke,colin,seigi", "subs": "hector,emma", "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/bcKtiAOf_tI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week6", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "6", "weekNum": 6, "date": "11/8/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Annie B Jamieson Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "sheima,maria,brooke,calvin,colin,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/nT8gzrOZock", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week7", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "7", "weekNum": 7, "date": "11/15/23", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Jules Quesnel Elementary", "opponent": "Safe Sets", "lineup": "sheima,maria,brooke,calvin,seigi", "subs": "hector", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/JPzIc-X1JuU", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week8", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "8", "weekNum": 8, "date": "11/22/23", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "The Crows", "lineup": "sheima,maria,brooke,calvin,colin,seigi", "subs": "hector", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/ev56idA5SPk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week9", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "9", "weekNum": 9, "date": "11/29/23", "time": "18:40", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Walter Moberly Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "sheima,maria,brooke,calvin,seigi", "subs": "gorman", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/b20zg2-ot0M", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week10", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "10", "weekNum": 10, "date": "12/6/23", "time": "20:15", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Annie B Jamieson Elementary", "opponent": "The Crows", "lineup": "sheima,brooke,colin,seigi", "subs": "derek,jane", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/J5s61axBBdk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2023Week11", "team": "wgah", "teamName": "WGAH", "year": "2023", "season": "Fall", "week": "11", "weekNum": 11, "date": "12/13/23", "time": "20:15", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Laura Secord Elementary", "opponent": "noname", "lineup": "maria,brooke,calvin,colin,seigi", "subs": "mariana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/ZiYAQu5mJwo", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week1", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "1", "weekNum": 1, "date": "1/10/24", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Laura Secord Elementary", "opponent": "The Crows", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/tX9F2omsUxg", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week2", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "2", "weekNum": 2, "date": "1/24/24", "time": "20:00", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Pop-up Blockers", "lineup": "sheima,maria,calvin,hector,seigi", "subs": "mariana", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/raT1gBErmc4", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week3", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "3", "weekNum": 3, "date": "1/31/24", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Jules Quesnel Elementary", "opponent": "Oddballs", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/oDwJzlJjdYU", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week4", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "4", "weekNum": 4, "date": "2/7/24", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Lord Kitchener Elementary", "opponent": "Subu", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": "cristal,kristin", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/kB9S15EA5b0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week5", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "5", "weekNum": 5, "date": "2/14/24", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Captain Cook Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "hector,seigi", "subs": "derek,jane,tatiana,mariya", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/VuSKaXeN9r4", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week6", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "6", "weekNum": 6, "date": "2/21/24", "time": "20:15", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Walter Moberly Elementary", "opponent": "Hits Don't Lie", "lineup": "calvin,seigi", "subs": "derek,jane,fion,mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/hg8s4ipqyJI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week7", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "7", "weekNum": 7, "date": "2/28/24", "time": "18:40", "type": "Regular", "division": "Wednesday Coed Int+", "location": "Lord Kitchener Elementary", "opponent": "Sets on the Beach", "lineup": "sheima,maria,calvin,hector,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/kGQAXMzlAF0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week8", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "8", "weekNum": 8, "date": "3/6/24", "time": "20:00", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Subu", "lineup": "maria,seigi", "subs": "mariana,marianaFriend1,marianaFriend2,marianaFriend3", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/6m5cu3NLm_A", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week9", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "9", "weekNum": 9, "date": "3/13/24", "time": "18:40", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Lord Kitchener Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "sheima,calvin,hector,seigi", "subs": "jane,samantha", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/ACgAsrPCNbw", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week10", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "10", "weekNum": 10, "date": "4/3/24", "time": "18:40", "type": "Exhibition", "division": "Wednesday Coed Int+", "location": "Carnarvon Elementary", "opponent": "Sets on the Beach", "lineup": "sheima,calvin,seigi", "subs": "mariana", "sw": 2, "sl": 2, "result": "T", "video": "https://youtu.be/M-9ciXiRH7g", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2024Week11", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Winter", "week": "11", "weekNum": 11, "date": "4/10/24", "time": "18:40", "type": "Playoffs", "division": "Wednesday Coed Int+", "location": "Lecole Bilingue Elementary", "opponent": "Safe Sets", "lineup": "sheima,maria,calvin,hector,seigi", "subs": "samantha", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/718rY466ll0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week1", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "1", "weekNum": 1, "date": "4/16/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Hastings Elementary", "opponent": "Sugar and Spike", "lineup": "sheima,maria,seigi", "subs": "issac,mariana,gorman", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/LCJfLYo_5Ak", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week2", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "2", "weekNum": 2, "date": "4/23/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Walter Moberly Elementary", "opponent": "Oh no", "lineup": "sheima,maria,calvin,hector,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/D_SG5YaJ5so", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week3", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "3", "weekNum": 3, "date": "4/30/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Laura Secord Elementary", "opponent": "Death Blow", "lineup": "sheima,maria,calvin,hector,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/qBHA7h64cB0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week4", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "4", "weekNum": 4, "date": "5/7/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Hastings Elementary", "opponent": "Legrosmash", "lineup": "sheima,maria,brooke,hector,seigi", "subs": "issac", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/sSNCIO1BAGw", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week5", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "5", "weekNum": 5, "date": "5/14/24", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Elsie Roy Elementary", "opponent": "Ballbasaur", "lineup": "sheima,hector,seigi", "subs": "issac,irena,sarah", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/a8m7spDtWnI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week6", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "6", "weekNum": 6, "date": "5/21/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Hastings Elementary", "opponent": "Legrosmash", "lineup": "sheima,brooke,calvin,seigi", "subs": "issac,mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/bKVLMSlfyEE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week7", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "7", "weekNum": 7, "date": "5/28/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Adv/Intermediate+", "location": "Walter Moberly Elementary", "opponent": "Hammock Cakes", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/-UFc9xl0udo", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week8", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "8", "weekNum": 8, "date": "6/4/24", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Adv/Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Legrosmash", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/BIMs62GZozc", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week9", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "9", "weekNum": 9, "date": "6/11/24", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Adv/Intermediate+", "location": "Walter Moberly Elementary", "opponent": "Oh no", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/VkphIcCql_E", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2024Week10", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Spring", "week": "10", "weekNum": 10, "date": "6/18/24", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Adv/Intermediate+", "location": "Lord Nelson Elementary", "opponent": "Sugar and Spike", "lineup": "sheima,maria,brooke,calvin,hector,seigi", "subs": null, "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/G4aFpUPvIBk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week1", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "1", "weekNum": 1, "date": "9/24/24", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Legrosmash", "lineup": "sheima,kaitlin,colin,bryan,calvin,seigi", "subs": "maria", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/krtJNVAmELo", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week2", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "2", "weekNum": 2, "date": "10/1/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Tennyson Elementary", "opponent": "Swings n Wings", "lineup": "sheima,kaitlin,colin,bryan,seigi", "subs": "maria", "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/3j-X2lngl80", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week3", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "3", "weekNum": 3, "date": "10/8/24", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Spankers", "lineup": "sheima,brooke,kaitlin,colin,calvin,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/j_UAHOrFjco", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week4", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "4", "weekNum": 4, "date": "10/15/24", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Id Hit That", "lineup": "sheima,brooke,colin,calvin,seigi", "subs": "maria", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/OR5lcZMwTIM", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week5", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "5", "weekNum": 5, "date": "10/22/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Tennyson Elementary", "opponent": "No Frills All Thrills", "lineup": "sheima,brooke,kaitlin,colin,bryan", "subs": "gorman", "sw": 1, "sl": 3, "result": "L", "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week6", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "6", "weekNum": 6, "date": "10/29/24", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Tennyson Elementary", "opponent": "Legrosmash", "lineup": "sheima,kaitlin,colin,bryan", "subs": "derek,jane", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/wahko_lfk2c", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week7", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "7", "weekNum": 7, "date": "11/5/24", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Swings n Wings", "lineup": "sheima,colin", "subs": "maria,aya,patrick,danny", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/GLgNxmVkFbA", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week8", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "8", "weekNum": 8, "date": "11/12/24", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Spankers", "lineup": "sheima,kaitlin,colin,seigi", "subs": "issac,tatiana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/NKwHhT0HNHU", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week9", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "9", "weekNum": 9, "date": "11/19/24", "time": "18:40", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Legrosmash", "lineup": "kaitlin,colin,calvin,bryan,seigi", "subs": "maria,aya,issac", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/wraHpx3m3Yc", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week10", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "10", "weekNum": 10, "date": "11/26/24", "time": "20:15", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "Annie B Jamieson Elementary", "opponent": "Death Blow", "lineup": "sheima,kaitlin,colin,calvin,seigi", "subs": "issac,jane", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/eiKF6zK1pVs", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week11", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "11", "weekNum": 11, "date": "12/3/24", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "Jules Quesnel Elementary", "opponent": "No Frills All Thrills", "lineup": "sheima,kaitlin,colin,seigi", "subs": "issac,maria", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/E-Ygsrv22zk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2024Week12", "team": "wgah", "teamName": "WGAH", "year": "2024", "season": "Fall", "week": "12", "weekNum": 12, "date": "12/3/24", "time": "20:15", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "Charles Dickens Elementary", "opponent": "No No No", "lineup": "sheima,kaitlin,colin,calvin,seigi", "subs": "issac,jane", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/6stkGIxh34g", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week1", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "1", "weekNum": 1, "date": "1/7/25", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Swings n Wings", "lineup": "sheima,laura,leah,colin,calvin,seigi", "subs": null, "sw": 2, "sl": 3, "result": "L", "video": "https://youtu.be/DN-QZ-UEreE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week2", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "2", "weekNum": 2, "date": "1/14/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Norma Rose Point School", "opponent": "Setters of Catan", "lineup": "sheima,laura,leah,colin,seigi", "subs": "issac", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/UsK5teT6cvY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week3", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "3", "weekNum": 3, "date": "1/21/25", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Legrosmash", "lineup": "sheima, laura,leah,colin,bryan,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/Nb3uCNwFD0Q", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week4", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "4", "weekNum": 4, "date": "1/28/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Set me up before you go go", "lineup": "sheima, laura,leah,colin,bryan,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/jhwjFs-KwnY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week5", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "5", "weekNum": 5, "date": "2/4/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Id Hit That", "lineup": "leah,colin,calvin,seigi", "subs": "maria,colinFriend", "sw": 2, "sl": 3, "result": "L", "video": "https://youtu.be/R_RA8ShCB9Q", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week6", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "6", "weekNum": 6, "date": "2/11/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Norma Rose Point School", "opponent": "Safe Sets", "lineup": "laura,leah,colin,bryan,seigi", "subs": null, "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/yK8kyQQXs-0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week7", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "7", "weekNum": 7, "date": "2/18/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Maple Grove Elementary", "opponent": "No Frills All Thrills", "lineup": "laura,leah,colin,calvin,seigi", "subs": "mariana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/VQG-pu-zjQI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week8", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "8", "weekNum": 8, "date": "2/25/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Maple Grove Elementary", "opponent": "Swings n Wings", "lineup": "laura,leah,colin,bryan,seigi", "subs": "mariana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/acBNr1ykkng", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week9", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "9", "weekNum": 9, "date": "3/4/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Maple Grove Elementary", "opponent": "Set me up before you go go", "lineup": "leah,colin,calvin,seigi", "subs": "issac,maria,jane", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/h8KejZ1XDlY", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week10", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "10", "weekNum": 10, "date": "3/11/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Norma Rose Point School", "opponent": "Swings n Wings", "lineup": "laura,leah,bryan,seigi", "subs": "derek,issac,mariana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/yOBIVMxPRZA", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week11", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "11", "weekNum": 11, "date": "4/1/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Safe Sets", "lineup": "sheima,laura,leah,seigi", "subs": "derek,issac", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/qjSOVJeZVQk", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Winter2025Week12", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Winter", "week": "12", "weekNum": 12, "date": "4/8/25", "time": "18:40", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "The Jolliballerz", "lineup": "laura,leah,calvin,seigi", "subs": "derek,issac,mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/QPUmFykQ3UE", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week1", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "1", "weekNum": 1, "date": "4/15/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Setters of Catan", "lineup": "sheima,laura,colin,bryan,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/M6W3vR5GB84", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week2", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "2", "weekNum": 2, "date": "4/22/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Set me up before you go go", "lineup": "sheima,laura,colin,calvin,seigi", "subs": "mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/u7gsRlGSIK4", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week3", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "3", "weekNum": 3, "date": "4/29/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Legrosmash", "lineup": "sheima,laura,leah,colin,bryan,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/IP7GDBD2bvU", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week4", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "4", "weekNum": 4, "date": "5/6/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Safe Sets", "lineup": "sheima,leah,colin,calvin,seigi", "subs": "miku", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/NtkkjQ0mY9w", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week5_1", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "5_1", "weekNum": 5, "date": "5/13/25", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "David Lloyd George Elementary", "opponent": "Legrosmash", "lineup": "sheima,laura,leah,calvin,seigi", "subs": "derek", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/VPh2i7074HI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week5_2", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "5_2", "weekNum": 5, "date": "5/13/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "David Lloyd George Elementary", "opponent": "No Frills All Thrills", "lineup": "sheima,laura,leah,colin,calvin,seigi", "subs": null, "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/ftjzq_eWkt8", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week6", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "6", "weekNum": 6, "date": "5/20/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Oddballs", "lineup": "sheima,laura,leah,colin,calvin,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/kRPJ7WjalRI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week7", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "7", "weekNum": 7, "date": "5/27/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "No Frills All Thrills", "lineup": "sheima,laura,colin,bryan,seigi", "subs": "mariana", "sw": 2, "sl": 2, "result": "T", "video": "https://youtu.be/URm0XKKpaD0", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week8", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "8", "weekNum": 8, "date": "6/3/25", "time": "20:15", "type": "Exhibition", "division": "Tuesday Coed Intermediate+", "location": "Jules Quesnel Elementary", "opponent": "Setters of Catan", "lineup": "sheima,leah,colin,calvin,seigi", "subs": "maria", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/hC6IZXewmKc", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week9", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "9", "weekNum": 9, "date": "6/10/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "Lord Kitchener Elementary", "opponent": "Setters of Catan", "lineup": "sheima,laura,leah,colin,bryan,seigi", "subs": null, "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/4Z3jKLgngw4", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week10", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "10", "weekNum": 10, "date": "6/17/25", "time": "18:40", "type": "Playoffs", "division": "Tuesday Coed Intermediate+", "location": "General Gordon Elementary", "opponent": "Set me up before you go go", "lineup": "sheima,laura,leah,seigi", "subs": "derek,patrick", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/BxRZ_IGXoao", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Spring2025Week11", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Spring", "week": "11", "weekNum": 11, "date": "6/24/25", "time": "20:00", "type": "Exhibition", "division": "Tuesday Coed Intermediate+", "location": "Jules Quesnel Elementary", "opponent": "Legrosmash", "lineup": "sheima,leah,calvin,seigi", "subs": "derek,maria", "sw": 2, "sl": 3, "result": "L", "video": "https://youtu.be/_KqqZ2ecFEI", "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2025Week1", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "1", "weekNum": 1, "date": "9/16/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "John Henderson Elementary", "opponent": "One Hit Wonder", "lineup": "sheima,maria,patrick,seigi", "subs": "carlton,lia", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/WAfOiuWF7rI", "highlights": null, "stats": {"points": 67, "earnedPoints": 35, "avgEP": 11.67, "attacks": 32, "avgAtt": 10.67, "blocks": 1, "avgBlocks": 0.33, "serves": 18, "avgServes": 6.0, "oppErrors": 16, "avgOE": 5.33, "oppPoints": 46, "oppEarnedPoints": -6, "avgOEP": -2.0, "oppAttacks": 10, "avgOppAtt": 3.33, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 10, "avgOppServes": 3.33, "ourErrors": 26, "avgOurErrors": 8.67}, "setScores": [[25, 24], [21, 14], [21, 8]], "ksvImport": "\t1\t25\t13\t14\t0\t5\t6\t\t\t\t\t\t\t24\t-6.00\t7\t0.00\t2\t15.00\t\t\t\t\t\t\t\t\n\t2\t21\t11\t7\t1\t8\t5\t\t\t\t\t\t\t14\t4.00\t2\t0.00\t7\t5.00\t\t\t\t\t\t\t\t\n\t3\t21\t11\t11\t0\t5\t5\t\t\t\t\t\t\t8\t-4.00\t1\t0.00\t1\t6.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week2", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "2", "weekNum": 2, "date": "9/23/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Sets on the Beach", "lineup": "sheima,melissa,patrick,seigi", "subs": "carlton,lia", "sw": 0, "sl": 3, "result": "L", "video": "https://youtu.be/AD8-8u-sJDg", "highlights": null, "stats": {"points": 41, "earnedPoints": -5, "avgEP": -1.67, "attacks": 17, "avgAtt": 5.67, "blocks": 0, "avgBlocks": 0.0, "serves": 1, "avgServes": 0.33, "oppErrors": 23, "avgOE": 7.67, "oppPoints": 63, "oppEarnedPoints": -7, "avgOEP": -2.33, "oppAttacks": 20, "avgOppAtt": 6.67, "oppBlocks": 3, "avgOppBlocks": 1.0, "oppServes": 5, "avgOppServes": 1.67, "ourErrors": 35, "avgOurErrors": 11.67}, "setScores": [[14, 21], [14, 21], [13, 21]], "ksvImport": "\t1\t14\t-2\t6\t0\t0\t8\t\t\t\t\t\t\t21\t-3.00\t5\t2.00\t2\t12.00\t\t\t\t\t\t\t\t\n\t2\t14\t-2\t5\t0\t1\t8\t\t\t\t\t\t\t21\t-3.00\t8\t0.00\t1\t12.00\t\t\t\t\t\t\t\t\n\t3\t13\t-1\t6\t0\t0\t7\t\t\t\t\t\t\t21\t-1.00\t7\t1.00\t2\t11.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week3", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "3", "weekNum": 3, "date": "10/7/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Gone Ballistic", "lineup": "sheima,maria,melissa,calvin,seigi", "subs": "derek", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/VkUp8vFvB6g", "highlights": null, "stats": {"points": 82, "earnedPoints": 22, "avgEP": 5.5, "attacks": 34, "avgAtt": 8.5, "blocks": 2, "avgBlocks": 0.5, "serves": 16, "avgServes": 4.0, "oppErrors": 30, "avgOE": 7.5, "oppPoints": 70, "oppEarnedPoints": 0, "avgOEP": 0.0, "oppAttacks": 24, "avgOppAtt": 6.0, "oppBlocks": 3, "avgOppBlocks": 0.75, "oppServes": 8, "avgOppServes": 2.0, "ourErrors": 35, "avgOurErrors": 8.75}, "setScores": [[19, 21], [21, 15], [21, 17], [21, 17]], "ksvImport": "\t1\t19\t5\t8\t0\t4\t7\t\t\t\t\t\t\t21\t-1.00\t4\t1.00\t5\t11.00\t\t\t\t\t\t\t\t\n\t2\t21\t7\t10\t0\t4\t7\t\t\t\t\t\t\t15\t-7.00\t4\t0.00\t0\t11.00\t\t\t\t\t\t\t\t\n\t3\t21\t7\t7\t2\t5\t7\t\t\t\t\t\t\t17\t5.00\t8\t1.00\t2\t6.00\t\t\t\t\t\t\t\t\n\t4\t21\t3\t9\t0\t3\t9\t\t\t\t\t\t\t17\t3.00\t8\t1.00\t1\t7.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week4", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "4", "weekNum": 4, "date": "10/14/25", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "John Henderson Elementary", "opponent": "Volley Baos", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/W443ILzswpg", "highlights": null, "stats": {"points": 98, "earnedPoints": 22, "avgEP": 4.4, "attacks": 40, "avgAtt": 8.0, "blocks": 3, "avgBlocks": 0.6, "serves": 17, "avgServes": 3.4, "oppErrors": 38, "avgOE": 7.6, "oppPoints": 87, "oppEarnedPoints": 1, "avgOEP": 0.2, "oppAttacks": 29, "avgOppAtt": 5.8, "oppBlocks": 3, "avgOppBlocks": 0.6, "oppServes": 12, "avgOppServes": 2.4, "ourErrors": 43, "avgOurErrors": 8.6}, "setScores": [[22, 24], [17, 21], [23, 21], [21, 9], [15, 12]], "ksvImport": "\t1\t22\t-2\t7\t1\t2\t12\t\t\t\t\t\t\t24\t2.00\t9\t1.00\t3\t11.00\t\t\t\t\t\t\t\t\n\t2\t17\t5\t9\t1\t1\t6\t\t\t\t\t\t\t21\t-7.00\t5\t0.00\t2\t14.00\t\t\t\t\t\t\t\t\n\t3\t23\t9\t9\t0\t7\t7\t\t\t\t\t\t\t21\t9.00\t9\t0.00\t6\t6.00\t\t\t\t\t\t\t\t\n\t4\t21\t5\t10\t0\t3\t8\t\t\t\t\t\t\t9\t-5.00\t2\t0.00\t0\t7.00\t\t\t\t\t\t\t\t\n\t5\t15\t5\t5\t1\t4\t5\t\t\t\t\t\t\t12\t2.00\t4\t2.00\t1\t5.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week5", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "5", "weekNum": 5, "date": "10/21/25", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Gone Ballistic", "lineup": "sheima,maria,calvin,patrick,seigi", "subs": "leah", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/2LFqpo5SesE", "highlights": null, "stats": {"points": 64, "earnedPoints": 28, "avgEP": 9.33, "attacks": 34, "avgAtt": 11.33, "blocks": 0, "avgBlocks": 0.0, "serves": 12, "avgServes": 4.0, "oppErrors": 18, "avgOE": 6.0, "oppPoints": 42, "oppEarnedPoints": 2, "avgOEP": 0.67, "oppAttacks": 14, "avgOppAtt": 4.67, "oppBlocks": 1, "avgOppBlocks": 0.33, "oppServes": 7, "avgOppServes": 2.33, "ourErrors": 20, "avgOurErrors": 6.67}, "setScores": [[21, 16], [21, 14], [22, 12]], "ksvImport": "\t1\t21\t7\t12\t0\t2\t7\t\t\t\t\t\t\t16\t2.00\t4\t1.00\t4\t7.00\t\t\t\t\t\t\t\t\n\t2\t21\t9\t10\t0\t5\t6\t\t\t\t\t\t\t14\t0.00\t6\t0.00\t1\t7.00\t\t\t\t\t\t\t\t\n\t3\t22\t12\t12\t0\t5\t5\t\t\t\t\t\t\t12\t0.00\t4\t0.00\t2\t6.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week6", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "6", "weekNum": 6, "date": "10/28/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Oh no", "lineup": "maria,melissa,patrick,seigi", "subs": "derek,mariana", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/iXBBfWbvwvA", "highlights": null, "stats": {"points": 82, "earnedPoints": 46, "avgEP": 11.5, "attacks": 37, "avgAtt": 9.25, "blocks": 2, "avgBlocks": 0.5, "serves": 25, "avgServes": 6.25, "oppErrors": 18, "avgOE": 4.5, "oppPoints": 64, "oppEarnedPoints": 0, "avgOEP": 0.0, "oppAttacks": 21, "avgOppAtt": 5.25, "oppBlocks": 2, "avgOppBlocks": 0.5, "oppServes": 9, "avgOppServes": 2.25, "ourErrors": 32, "avgOurErrors": 8.0}, "setScores": [[21, 9], [21, 18], [19, 21], [21, 16]], "ksvImport": "\t1\t21\t11\t6\t0\t10\t5\t\t\t\t\t\t\t9\t-1.00\t3\t0.00\t1\t5.00\t\t\t\t\t\t\t\t\n\t2\t21\t5\t7\t0\t6\t8\t\t\t\t\t\t\t18\t-4.00\t4\t0.00\t3\t11.00\t\t\t\t\t\t\t\t\n\t3\t19\t13\t11\t0\t5\t3\t\t\t\t\t\t\t21\t1.00\t8\t1.00\t2\t10.00\t\t\t\t\t\t\t\t\n\t4\t21\t17\t13\t2\t4\t2\t\t\t\t\t\t\t16\t4.00\t6\t1.00\t3\t6.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week7", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "7", "weekNum": 7, "date": "11/4/25", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Death Blow", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/zo5YEgR4fQU", "highlights": null, "stats": {"points": 66, "earnedPoints": 34, "avgEP": 11.33, "attacks": 30, "avgAtt": 10.0, "blocks": 2, "avgBlocks": 0.67, "serves": 18, "avgServes": 6.0, "oppErrors": 16, "avgOE": 5.33, "oppPoints": 58, "oppEarnedPoints": -12, "avgOEP": -4.0, "oppAttacks": 15, "avgOppAtt": 5.0, "oppBlocks": 2, "avgOppBlocks": 0.67, "oppServes": 6, "avgOppServes": 2.0, "ourErrors": 35, "avgOurErrors": 11.67}, "setScores": [[21, 17], [22, 20], [23, 21]], "ksvImport": "\t1\t21\t15\t10\t2\t6\t3\t\t\t\t\t\t\t17\t-5.00\t4\t1.00\t1\t11.00\t\t\t\t\t\t\t\t\n\t2\t22\t10\t10\t0\t6\t6\t\t\t\t\t\t\t20\t-6.00\t5\t0.00\t2\t13.00\t\t\t\t\t\t\t\t\n\t3\t23\t9\t10\t0\t6\t7\t\t\t\t\t\t\t21\t-1.00\t6\t1.00\t3\t11.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week8", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "8", "weekNum": 8, "date": "11/18/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Death Blow", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/FJHnQmC9vIA", "highlights": null, "stats": {"points": 62, "earnedPoints": 30, "avgEP": 10.0, "attacks": 15, "avgAtt": 5.0, "blocks": 12, "avgBlocks": 4.0, "serves": 19, "avgServes": 6.33, "oppErrors": 16, "avgOE": 5.33, "oppPoints": 37, "oppEarnedPoints": -9, "avgOEP": -3.0, "oppAttacks": 11, "avgOppAtt": 3.67, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 3, "avgOppServes": 1.0, "ourErrors": 23, "avgOurErrors": 7.67}, "setScores": [[21, 11], [21, 11], [20, 15]], "ksvImport": "\t1\t21\t9\t4\t4\t7\t6\t\t\t\t\t\t\t11\t-3.00\t3\t0.00\t1\t7.00\t\t\t\t\t\t\t\t\n\t2\t21\t9\t4\t4\t7\t6\t\t\t\t\t\t\t11\t-3.00\t3\t0.00\t1\t7.00\t\t\t\t\t\t\t\t\n\t3\t20\t12\t7\t4\t5\t4\t\t\t\t\t\t\t15\t-3.00\t5\t0.00\t1\t9.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week9", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "9", "weekNum": 9, "date": "11/25/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Gone Ballistic", "lineup": "sheima,melissa,calvin,seigi", "subs": "derek,mariana", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/ku6DZ3ys-0g", "highlights": null, "stats": {"points": 63, "earnedPoints": -1, "avgEP": -0.33, "attacks": 17, "avgAtt": 5.67, "blocks": 1, "avgBlocks": 0.33, "serves": 13, "avgServes": 4.33, "oppErrors": 32, "avgOE": 10.67, "oppPoints": 35, "oppEarnedPoints": -3, "avgOEP": -1.0, "oppAttacks": 13, "avgOppAtt": 4.33, "oppBlocks": 1, "avgOppBlocks": 0.33, "oppServes": 2, "avgOppServes": 0.67, "ourErrors": 19, "avgOurErrors": 6.33}, "setScores": [[21, 5], [21, 12], [21, 18]], "ksvImport": "\t1\t21\t-3\t3\t0\t6\t12\t\t\t\t\t\t\t5\t3.00\t3\t1.00\t0\t1.00\t\t\t\t\t\t\t\t\n\t2\t21\t5\t7\t1\t5\t8\t\t\t\t\t\t\t12\t-4.00\t3\t0.00\t1\t8.00\t\t\t\t\t\t\t\t\n\t3\t21\t-3\t7\t0\t2\t12\t\t\t\t\t\t\t18\t-2.00\t7\t0.00\t1\t10.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week10", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "10", "weekNum": 10, "date": "12/2/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "melissa,seigi", "subs": "derek,leah,mariana,gorman", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/unKd_5hvYuQ", "highlights": null, "stats": {"points": 64, "earnedPoints": 12, "avgEP": 4.0, "attacks": 28, "avgAtt": 9.33, "blocks": 4, "avgBlocks": 1.33, "serves": 6, "avgServes": 2.0, "oppErrors": 26, "avgOE": 8.67, "oppPoints": 45, "oppEarnedPoints": -11, "avgOEP": -3.67, "oppAttacks": 10, "avgOppAtt": 3.33, "oppBlocks": 3, "avgOppBlocks": 1.0, "oppServes": 4, "avgOppServes": 1.33, "ourErrors": 28, "avgOurErrors": 9.33}, "setScores": [[22, 20], [21, 11], [21, 14]], "ksvImport": "\t1\t22\t2\t9\t1\t2\t10\t\t\t\t\t\t\t20\t-4.00\t4\t1.00\t3\t12.00\t\t\t\t\t\t\t\t\n\t2\t21\t-1\t8\t0\t2\t11\t\t\t\t\t\t\t11\t-1.00\t4\t1.00\t0\t6.00\t\t\t\t\t\t\t\t\n\t3\t21\t11\t11\t3\t2\t5\t\t\t\t\t\t\t14\t-6.00\t2\t1.00\t1\t10.00\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week11", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "11", "weekNum": 11, "date": "12/9/25", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Lecole Bilingue Elementary", "opponent": "Pancakes over Waffles", "lineup": "sheima,maria,melissa,calvin,seigi", "subs": "derek", "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/CMuuys9T1po", "highlights": null, "stats": {"points": 68, "earnedPoints": 10, "avgEP": 2.5, "attacks": 27, "avgAtt": 6.75, "blocks": 5, "avgBlocks": 1.25, "serves": 7, "avgServes": 1.75, "oppErrors": 29, "avgOE": 7.25, "oppPoints": 81, "oppEarnedPoints": 5, "avgOEP": 1.25, "oppAttacks": 31, "avgOppAtt": 7.75, "oppBlocks": 4, "avgOppBlocks": 1.0, "oppServes": 8, "avgOppServes": 2.0, "ourErrors": 38, "avgOurErrors": 9.5}, "setScores": [[21, 18], [18, 21], [12, 21], [17, 21]], "ksvImport": "\t1\t21\t9\t10\t3\t2\t6\t\t\t\t\t\t\t18\t0\t7\t0\t2\t9\t\t\t\t\t\t\t\t\n\t2\t18\t0\t6\t1\t2\t9\t\t\t\t\t\t\t21\t3\t9\t3\t0\t9\t\t\t\t\t\t\t\t\n\t3\t12\t-2\t3\t0\t2\t7\t\t\t\t\t\t\t21\t5\t8\t0\t5\t8\t\t\t\t\t\t\t\t\n\t4\t17\t3\t8\t1\t1\t7\t\t\t\t\t\t\t21\t-3\t7\t1\t1\t12\t\t\t\t\t\t\t\t"}, {"id": "Fall2025Week12", "team": "wgah", "teamName": "WGAH", "year": "2025", "season": "Fall", "week": "12", "weekNum": 12, "date": "12/16/25", "time": "20:00", "type": "Exhibition", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Volley Baos", "lineup": "maria,melissa,seigi", "subs": "mariana,corey,mike", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/2_c4vyfS9J8", "highlights": null, "stats": {"points": 93, "earnedPoints": 17, "avgEP": 3.4, "attacks": 38, "avgAtt": 7.6, "blocks": 6, "avgBlocks": 1.2, "serves": 11, "avgServes": 2.2, "oppErrors": 38, "avgOE": 7.6, "oppPoints": 92, "oppEarnedPoints": 0, "avgOEP": 0.0, "oppAttacks": 27, "avgOppAtt": 5.4, "oppBlocks": 2, "avgOppBlocks": 0.4, "oppServes": 17, "avgOppServes": 3.4, "ourErrors": 46, "avgOurErrors": 9.2}, "setScores": [[21, 14], [13, 21], [16, 21], [21, 16], [22, 20]], "ksvImport": "\t1\t21\t5\t7\t2\t4\t8\t\t\t\t\t\t\t14\t-8\t2\t1\t0\t11\t\t\t\t\t\t\t\t\n\t2\t13\t-1\t5\t0\t1\t7\t\t\t\t\t\t\t21\t1\t6\t0\t5\t10\t\t\t\t\t\t\t\t\n\t3\t16\t2\t8\t0\t1\t7\t\t\t\t\t\t\t21\t-3\t4\t0\t5\t12\t\t\t\t\t\t\t\t\n\t4\t21\t1\t7\t1\t3\t10\t\t\t\t\t\t\t16\t4\t7\t0\t3\t6\t\t\t\t\t\t\t\t\n\t5\t22\t10\t11\t3\t2\t6\t\t\t\t\t\t\t20\t6\t8\t1\t4\t7\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week1", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "1", "weekNum": 1, "date": "1/6/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "sheima,calvin,patrick,seigi", "subs": "yuka,akiko", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/EKHChfC6UKA", "highlights": null, "stats": {"points": 81, "earnedPoints": 15, "avgEP": 3.75, "attacks": 39, "avgAtt": 9.75, "blocks": 2, "avgBlocks": 0.5, "serves": 7, "avgServes": 1.75, "oppErrors": 33, "avgOE": 8.25, "oppPoints": 68, "oppEarnedPoints": -2, "avgOEP": -0.5, "oppAttacks": 26, "avgOppAtt": 6.5, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 7, "avgOppServes": 1.75, "ourErrors": 35, "avgOurErrors": 8.75}, "setScores": [[18, 21], [21, 14], [21, 18], [21, 15]], "ksvImport": "\t1\t18\t12\t14\t0\t1\t3\t\t\t\t\t\t\t21\t-7\t6\t0\t1\t14\t\t\t\t\t\t\t\t\n\t2\t21\t3\t10\t1\t1\t9\t\t\t\t\t\t\t14\t-2\t6\t0\t0\t8\t\t\t\t\t\t\t\t\n\t3\t21\t-3\t8\t0\t1\t12\t\t\t\t\t\t\t18\t12\t9\t0\t6\t3\t\t\t\t\t\t\t\t\n\t4\t21\t3\t7\t1\t4\t9\t\t\t\t\t\t\t15\t-5\t5\t0\t0\t10\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week2", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "2", "weekNum": 2, "date": "1/13/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "John Henderson Elementary", "opponent": "Hits & Giggles", "lineup": "sheima,maria,melissa,patrick,seigi", "subs": "derek", "sw": 2, "sl": 3, "result": "L", "video": "https://youtu.be/xuUUDKb6OpM", "highlights": null, "stats": {"points": 81, "earnedPoints": 13, "avgEP": 2.6, "attacks": 28, "avgAtt": 5.6, "blocks": 5, "avgBlocks": 1.0, "serves": 14, "avgServes": 2.8, "oppErrors": 34, "avgOE": 6.8, "oppPoints": 89, "oppEarnedPoints": -7, "avgOEP": -1.4, "oppAttacks": 34, "avgOppAtt": 6.8, "oppBlocks": 2, "avgOppBlocks": 0.4, "oppServes": 5, "avgOppServes": 1.0, "ourErrors": 48, "avgOurErrors": 9.6}, "setScores": [[21, 16], [16, 21], [12, 21], [21, 16], [11, 15]], "ksvImport": "\t1\t21\t1\t6\t1\t4\t10\t\t\t\t\t\t\t16\t-2\t6\t1\t0\t9\t\t\t\t\t\t\t\t\n\t2\t16\t4\t5\t1\t4\t6\t\t\t\t\t\t\t21\t-1\t7\t1\t2\t11\t\t\t\t\t\t\t\t\n\t3\t12\t-4\t3\t0\t1\t8\t\t\t\t\t\t\t21\t-1\t8\t0\t2\t11\t\t\t\t\t\t\t\t\n\t4\t21\t13\t11\t2\t4\t4\t\t\t\t\t\t\t16\t-6\t4\t0\t1\t11\t\t\t\t\t\t\t\t\n\t5\t11\t-1\t3\t1\t1\t6\t\t\t\t\t\t\t15\t3\t9\t0\t0\t6\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week3", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "3", "weekNum": 3, "date": "1/20/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Safe Sets (2)", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/dMXc--szGXY", "highlights": null, "stats": {"points": 63, "earnedPoints": 3, "avgEP": 1.0, "attacks": 22, "avgAtt": 7.33, "blocks": 2, "avgBlocks": 0.67, "serves": 9, "avgServes": 3.0, "oppErrors": 30, "avgOE": 10.0, "oppPoints": 40, "oppEarnedPoints": -14, "avgOEP": -4.67, "oppAttacks": 8, "avgOppAtt": 2.67, "oppBlocks": 2, "avgOppBlocks": 0.67, "oppServes": 3, "avgOppServes": 1.0, "ourErrors": 27, "avgOurErrors": 9.0}, "setScores": [[21, 9], [21, 13], [21, 18]], "ksvImport": "\t1\t21\t-1\t6\t0\t4\t11\t\t\t\t\t\t\t9\t-5\t2\t0\t0\t7\t\t\t\t\t\t\t\t\n\t2\t21\t-1\t7\t0\t3\t11\t\t\t\t\t\t\t13\t-3\t3\t2\t0\t8\t\t\t\t\t\t\t\t\n\t3\t21\t5\t9\t2\t2\t8\t\t\t\t\t\t\t18\t-6\t3\t0\t3\t12\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week4", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "4", "weekNum": 4, "date": "1/27/26", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Gone Ballistic", "lineup": "maria,calvin,patrick,seigi", "subs": "yuka,shiori", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/it6K7P9pGbQ", "highlights": null, "stats": {"points": 82, "earnedPoints": 22, "avgEP": 5.5, "attacks": 40, "avgAtt": 10.0, "blocks": 5, "avgBlocks": 1.25, "serves": 7, "avgServes": 1.75, "oppErrors": 30, "avgOE": 7.5, "oppPoints": 53, "oppEarnedPoints": -7, "avgOEP": -1.75, "oppAttacks": 21, "avgOppAtt": 5.25, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 2, "avgOppServes": 0.5, "ourErrors": 30, "avgOurErrors": 7.5}, "setScores": [[21, 15], [20, 8], [20, 22], [21, 8]], "ksvImport": "\t1\t21\t5\t11\t2\t0\t8\t\t\t\t\t\t\t15\t-1\t6\t0\t1\t8\t\t\t\t\t\t\t\t\n\t2\t20\t4\t8\t0\t4\t8\t\t\t\t\t\t\t8\t2\t5\t0\t0\t3\t\t\t\t\t\t\t\t\n\t3\t20\t10\t13\t2\t0\t5\t\t\t\t\t\t\t22\t-4\t8\t0\t1\t13\t\t\t\t\t\t\t\t\n\t4\t21\t3\t8\t1\t3\t9\t\t\t\t\t\t\t8\t-4\t2\t0\t0\t6\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week5", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "5", "weekNum": 5, "date": "2/3/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Queen Alexandra Elementaty", "opponent": "Sandy Cheeks", "lineup": "sheima,melissa,calvin,patrick,seigi", "subs": "mariana", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/vdnOBGfRTlA", "highlights": null, "stats": {"points": 93, "earnedPoints": 7, "avgEP": 1.4, "attacks": 39, "avgAtt": 7.8, "blocks": 0, "avgBlocks": 0.0, "serves": 11, "avgServes": 2.2, "oppErrors": 43, "avgOE": 8.6, "oppPoints": 90, "oppEarnedPoints": 10, "avgOEP": 2.0, "oppAttacks": 36, "avgOppAtt": 7.2, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 14, "avgOppServes": 2.8, "ourErrors": 40, "avgOurErrors": 8.0}, "setScores": [[18, 21], [22, 20], [21, 17], [17, 21], [15, 11]], "ksvImport": "\t1\t18\t-2\t6\t0\t2\t10\t\t\t\t\t\t\t21\t-5\t6\t0\t2\t13\t\t\t\t\t\t\t\t\n\t2\t22\t-4\t5\t0\t4\t13\t\t\t\t\t\t\t20\t8\t10\t0\t4\t6\t\t\t\t\t\t\t\t\n\t3\t21\t7\t10\t0\t4\t7\t\t\t\t\t\t\t17\t3\t5\t0\t5\t7\t\t\t\t\t\t\t\t\n\t4\t17\t3\t9\t0\t1\t7\t\t\t\t\t\t\t21\t-3\t6\t0\t3\t12\t\t\t\t\t\t\t\t\n\t5\t15\t3\t9\t0\t0\t6\t\t\t\t\t\t\t11\t7\t9\t0\t0\t2\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week6", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "6", "weekNum": 6, "date": "2/10/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Setting Ducks", "lineup": "sheima,maria,melissa,patrick,seigi", "subs": "gorman", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/KAygTGPRZQA", "highlights": null, "stats": {"points": 92, "earnedPoints": 2, "avgEP": 0.4, "attacks": 26, "avgAtt": 5.2, "blocks": 10, "avgBlocks": 2.0, "serves": 11, "avgServes": 2.2, "oppErrors": 45, "avgOE": 9.0, "oppPoints": 83, "oppEarnedPoints": -7, "avgOEP": -1.4, "oppAttacks": 32, "avgOppAtt": 6.4, "oppBlocks": 1, "avgOppBlocks": 0.2, "oppServes": 5, "avgOppServes": 1.0, "ourErrors": 45, "avgOurErrors": 9.0}, "setScores": [[14, 21], [21, 23], [21, 16], [21, 14], [15, 9]], "ksvImport": "\t1\t14\t-4\t3\t1\t1\t9\t\t\t\t\t\t\t21\t-7\t5\t0\t2\t14\t\t\t\t\t\t\t\t\n\t2\t21\t-3\t5\t3\t1\t12\t\t\t\t\t\t\t23\t1\t9\t0\t3\t11\t\t\t\t\t\t\t\t\n\t3\t21\t5\t6\t3\t4\t8\t\t\t\t\t\t\t16\t-4\t5\t1\t0\t10\t\t\t\t\t\t\t\t\n\t4\t21\t1\t7\t2\t2\t10\t\t\t\t\t\t\t14\t2\t8\t0\t0\t6\t\t\t\t\t\t\t\t\n\t5\t15\t3\t5\t1\t3\t6\t\t\t\t\t\t\t9\t1\t5\t0\t0\t4\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week7", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "7", "weekNum": 7, "date": "2/17/26", "time": "18:40", "type": "Regular", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Notorious D.I.G. (Stranger Swings,Sets Pistols)", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/I1g9yqcd4r8", "highlights": null, "stats": {"points": 63, "earnedPoints": 19, "avgEP": 6.33, "attacks": 29, "avgAtt": 9.67, "blocks": 3, "avgBlocks": 1.0, "serves": 9, "avgServes": 3.0, "oppErrors": 22, "avgOE": 7.33, "oppPoints": 44, "oppEarnedPoints": -16, "avgOEP": -5.33, "oppAttacks": 12, "avgOppAtt": 4.0, "oppBlocks": 1, "avgOppBlocks": 0.33, "oppServes": 1, "avgOppServes": 0.33, "ourErrors": 30, "avgOurErrors": 10.0}, "setScores": [[21, 9], [21, 18], [21, 17]], "ksvImport": "\t1\t21\t7\t8\t1\t5\t7\t\t\t\t\t\t\t9\t-1\t3\t0\t1\t5\t\t\t\t\t\t\t\t\n\t2\t21\t7\t11\t0\t3\t7\t\t\t\t\t\t\t18\t-4\t7\t0\t0\t11\t\t\t\t\t\t\t\t\n\t3\t21\t5\t10\t2\t1\t8\t\t\t\t\t\t\t17\t-11\t2\t1\t0\t14\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week8", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "8", "weekNum": 8, "date": "2/24/26", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Spankers", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": "derek", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/ghkRFhxZESk", "highlights": null, "stats": {"points": 63, "earnedPoints": 25, "avgEP": 8.33, "attacks": 28, "avgAtt": 9.33, "blocks": 3, "avgBlocks": 1.0, "serves": 13, "avgServes": 4.33, "oppErrors": 19, "avgOE": 6.33, "oppPoints": 38, "oppEarnedPoints": -10, "avgOEP": -3.33, "oppAttacks": 9, "avgOppAtt": 3.0, "oppBlocks": 2, "avgOppBlocks": 0.67, "oppServes": 3, "avgOppServes": 1.0, "ourErrors": 24, "avgOurErrors": 8.0}, "setScores": [[21, 13], [21, 10], [21, 15]], "ksvImport": "\t1\t21\t11\t12\t0\t4\t5\t\t\t\t\t\t\t13\t-3\t3\t1\t1\t8\t\t\t\t\t\t\t\t\n\t2\t21\t7\t7\t1\t6\t7\t\t\t\t\t\t\t10\t-4\t1\t1\t1\t7\t\t\t\t\t\t\t\t\n\t3\t21\t7\t9\t2\t3\t7\t\t\t\t\t\t\t15\t-3\t5\t0\t1\t9\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week9", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "9", "weekNum": 9, "date": "3/3/26", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Setters of Catan", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": "derek", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/LDJKYv2TFno", "highlights": null, "stats": {"points": 85, "earnedPoints": 37, "avgEP": 9.25, "attacks": 51, "avgAtt": 12.75, "blocks": 2, "avgBlocks": 0.5, "serves": 8, "avgServes": 2.0, "oppErrors": 24, "avgOE": 6.0, "oppPoints": 59, "oppEarnedPoints": 15, "avgOEP": 3.75, "oppAttacks": 32, "avgOppAtt": 8.0, "oppBlocks": 1, "avgOppBlocks": 0.25, "oppServes": 4, "avgOppServes": 1.0, "ourErrors": 22, "avgOurErrors": 5.5}, "setScores": [[22, 23], [21, 13], [21, 12], [21, 11]], "ksvImport": "\t1\t22\t8\t12\t0\t3\t7\t\t\t\t\t\t\t23\t7\t13\t0\t2\t8\t\t\t\t\t\t\t\t\n\t2\t21\t5\t13\t0\t0\t8\t\t\t\t\t\t\t13\t-1\t6\t0\t0\t7\t\t\t\t\t\t\t\t\n\t3\t21\t13\t14\t0\t3\t4\t\t\t\t\t\t\t12\t4\t8\t0\t0\t4\t\t\t\t\t\t\t\t\n\t4\t21\t11\t12\t2\t2\t5\t\t\t\t\t\t\t11\t5\t5\t1\t2\t3\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week10", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "10", "weekNum": 10, "date": "3/10/26", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Hits & Giggles", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": "derek", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/bePbY1vIV5g", "highlights": null, "stats": {"points": 63, "earnedPoints": 25, "avgEP": 8.33, "attacks": 25, "avgAtt": 8.33, "blocks": 3, "avgBlocks": 1.0, "serves": 16, "avgServes": 5.33, "oppErrors": 19, "avgOE": 6.33, "oppPoints": 39, "oppEarnedPoints": -1, "avgOEP": -0.33, "oppAttacks": 13, "avgOppAtt": 4.33, "oppBlocks": 2, "avgOppBlocks": 0.67, "oppServes": 4, "avgOppServes": 1.33, "ourErrors": 20, "avgOurErrors": 6.67}, "setScores": [[21, 19], [21, 5], [21, 15]], "ksvImport": "\t1\t21\t5\t10\t0\t3\t8\t\t\t\t\t\t\t19\t-3\t6\t0\t2\t11\t\t\t\t\t\t\t\t\n\t2\t21\t13\t7\t0\t10\t4\t\t\t\t\t\t\t5\t1\t3\t0\t0\t2\t\t\t\t\t\t\t\t\n\t3\t21\t7\t8\t3\t3\t7\t\t\t\t\t\t\t15\t1\t4\t2\t2\t7\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week11", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "11", "weekNum": 11, "date": "3/31/26", "time": "18:30", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "General Gordon Elementary", "opponent": "Block Busters", "lineup": "sheima,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/Ikao-9Ox-Bc", "highlights": null, "stats": {"points": 82, "earnedPoints": 6, "avgEP": 1.2, "attacks": 34, "avgAtt": 6.8, "blocks": 3, "avgBlocks": 0.6, "serves": 7, "avgServes": 1.4, "oppErrors": 38, "avgOE": 7.6, "oppPoints": 81, "oppEarnedPoints": 7, "avgOEP": 1.4, "oppAttacks": 31, "avgOppAtt": 6.2, "oppBlocks": 4, "avgOppBlocks": 0.8, "oppServes": 9, "avgOppServes": 1.8, "ourErrors": 37, "avgOurErrors": 7.4}, "setScores": [[21, 13], [12, 21], [12, 21], [21, 12], [16, 14]], "ksvImport": "\t1\t21\t7\t10\t0\t4\t7\t\t\t\t\t\t\t13\t-1\t4\t1\t1\t7\t\t\t\t\t\t\t\t\n\t2\t12\t2\t7\t0\t0\t5\t\t\t\t\t\t\t21\t3\t6\t2\t4\t9\t\t\t\t\t\t\t\t\n\t3\t12\t0\t4\t1\t1\t6\t\t\t\t\t\t\t21\t1\t9\t0\t2\t10\t\t\t\t\t\t\t\t\n\t4\t21\t-1\t6\t2\t2\t11\t\t\t\t\t\t\t12\t2\t6\t0\t1\t5\t\t\t\t\t\t\t\t\n\t5\t16\t-2\t7\t0\t0\t9\t\t\t\t\t\t\t14\t2\t6\t1\t1\t6\t\t\t\t\t\t\t\t"}, {"id": "Winter2026Week12", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Winter", "week": "12", "weekNum": 12, "date": "4/7/26", "time": "18:40", "type": "Exhibition", "division": "Tuesday Coed Int+", "location": "David Lloyd George Elementary", "opponent": "Gone Ballistic", "lineup": "calvin,patrick,seigi", "subs": "erika,miku,camila", "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/rMVAw47DqZk", "highlights": null, "stats": {"points": 63, "earnedPoints": -9, "avgEP": -3.0, "attacks": 21, "avgAtt": 7.0, "blocks": 0, "avgBlocks": 0.0, "serves": 6, "avgServes": 2.0, "oppErrors": 36, "avgOE": 12.0, "oppPoints": 40, "oppEarnedPoints": 0, "avgOEP": 0.0, "oppAttacks": 14, "avgOppAtt": 4.67, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 6, "avgOppServes": 2.0, "ourErrors": 20, "avgOurErrors": 6.67}, "setScores": [[21, 16], [21, 6], [21, 18]], "ksvImport": "\t1\t21\t-1\t7\t0\t3\t11\t\t\t\t\t\t\t16\t-2\t5\t0\t2\t9\t\t\t\t\t\t\t\t\n\t2\t21\t-3\t8\t0\t1\t12\t\t\t\t\t\t\t6\t0\t3\t0\t0\t3\t\t\t\t\t\t\t\t\n\t3\t21\t-5\t6\t0\t2\t13\t\t\t\t\t\t\t18\t2\t6\t0\t4\t8\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week1", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "1", "weekNum": 1, "date": "4/14/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Lord Kitchener Elementary", "opponent": "Pancakes over Waffles", "lineup": "melissa,patrick,seigi", "subs": "sheima,miku,derek", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/B31jCzw_d-8", "highlights": null, "stats": {"points": 84, "earnedPoints": 32, "avgEP": 6.4, "attacks": 49, "avgAtt": 9.8, "blocks": 4, "avgBlocks": 0.8, "serves": 5, "avgServes": 1.0, "oppErrors": 26, "avgOE": 5.2, "oppPoints": 82, "oppEarnedPoints": -6, "avgOEP": -1.2, "oppAttacks": 31, "avgOppAtt": 6.2, "oppBlocks": 1, "avgOppBlocks": 0.2, "oppServes": 6, "avgOppServes": 1.2, "ourErrors": 44, "avgOurErrors": 8.8}, "setScores": [[21, 23], [21, 17], [15, 21], [21, 17], [6, 4]], "ksvImport": "\t1\t21\t-1\t7\t2\t1\t11\t\t\t\t\t\t\t23\t-1\t6\t1\t4\t12\t\t\t\t\t\t\t\t\n\t2\t21\t5\t13\t0\t0\t8\t\t\t\t\t\t\t17\t1\t9\t0\t0\t8\t\t\t\t\t\t\t\t\n\t3\t15\t11\t12\t0\t1\t2\t\t\t\t\t\t\t21\t-5\t8\t0\t0\t13\t\t\t\t\t\t\t\t\n\t4\t21\t11\t11\t2\t3\t5\t\t\t\t\t\t\t17\t1\t7\t0\t2\t8\t\t\t\t\t\t\t\t\n\t5\t6\t6\t6\t0\t0\t0\t\t\t\t\t\t\t4\t-2\t1\t0\t0\t3\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week2", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "2", "weekNum": 2, "date": "4/21/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Laura Secord Elementary", "opponent": "Hits & Giggles", "lineup": "maria,melissa,patrick,seigi", "subs": "sheima,derek", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/Sbl6b7bMH0s", "highlights": null, "stats": {"points": 73, "earnedPoints": 33, "avgEP": 8.25, "attacks": 43, "avgAtt": 10.75, "blocks": 2, "avgBlocks": 0.5, "serves": 8, "avgServes": 2.0, "oppErrors": 20, "avgOE": 5.0, "oppPoints": 61, "oppEarnedPoints": -5, "avgOEP": -1.25, "oppAttacks": 22, "avgOppAtt": 5.5, "oppBlocks": 1, "avgOppBlocks": 0.25, "oppServes": 5, "avgOppServes": 1.25, "ourErrors": 33, "avgOurErrors": 8.25}, "setScores": [[10, 21], [21, 14], [21, 11], [21, 15]], "ksvImport": "\t1\t10\t4\t6\t1\t0\t3\t\t\t\t\t\t\t21\t-1\t7\t0\t3\t11\t\t\t\t\t\t\t\t\n\t2\t21\t9\t12\t1\t2\t6\t\t\t\t\t\t\t14\t0\t6\t1\t0\t7\t\t\t\t\t\t\t\t\n\t3\t21\t7\t11\t0\t3\t7\t\t\t\t\t\t\t11\t3\t6\t0\t1\t4\t\t\t\t\t\t\t\t\n\t4\t21\t13\t14\t0\t3\t4\t\t\t\t\t\t\t15\t-7\t3\t0\t1\t11\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week3", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "3", "weekNum": 3, "date": "4/28/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Hammock Cakes", "lineup": "kirsten,melissa,calvin,patrick,seigi", "subs": "miku", "sw": 1, "sl": 3, "result": "L", "video": "https://youtu.be/vgrxc7-M5AI", "highlights": null, "stats": {"points": 56, "earnedPoints": 10, "avgEP": 2.5, "attacks": 25, "avgAtt": 6.25, "blocks": 5, "avgBlocks": 1.25, "serves": 3, "avgServes": 0.75, "oppErrors": 23, "avgOE": 5.75, "oppPoints": 78, "oppEarnedPoints": 32, "avgOEP": 8.0, "oppAttacks": 35, "avgOppAtt": 8.75, "oppBlocks": 3, "avgOppBlocks": 0.75, "oppServes": 17, "avgOppServes": 4.25, "ourErrors": 23, "avgOurErrors": 5.75}, "setScores": [[11, 21], [9, 21], [21, 15], [15, 21]], "ksvImport": "\t1\t11\t-3\t3\t0\t1\t7\t\t\t\t\t\t\t21\t7\t7\t2\t5\t7\t\t\t\t\t\t\t\t\n\t2\t9\t-1\t3\t0\t1\t5\t\t\t\t\t\t\t21\t15\t8\t0\t10\t3\t\t\t\t\t\t\t\t\n\t3\t21\t9\t11\t4\t0\t6\t\t\t\t\t\t\t15\t3\t6\t1\t2\t6\t\t\t\t\t\t\t\t\n\t4\t15\t5\t8\t1\t1\t5\t\t\t\t\t\t\t21\t7\t14\t0\t0\t7\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week4", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "4", "weekNum": 4, "date": "5/5/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Setters of Catan", "lineup": "kirsten,melissa,patrick,seigi", "subs": "sheima", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/hOohPy1JynI", "highlights": null, "stats": {"points": 79, "earnedPoints": 23, "avgEP": 5.75, "attacks": 36, "avgAtt": 9.0, "blocks": 1, "avgBlocks": 0.25, "serves": 14, "avgServes": 3.5, "oppErrors": 28, "avgOE": 7.0, "oppPoints": 67, "oppEarnedPoints": -9, "avgOEP": -2.25, "oppAttacks": 23, "avgOppAtt": 5.75, "oppBlocks": 0, "avgOppBlocks": 0.0, "oppServes": 6, "avgOppServes": 1.5, "ourErrors": 38, "avgOurErrors": 9.5}, "setScores": [[21, 15], [16, 21], [21, 15], [21, 16]], "ksvImport": "\t1\t21\t3\t8\t0\t4\t9\t\t\t\t\t\t\t15\t1\t8\t0\t0\t7\t\t\t\t\t\t\t\t\n\t2\t16\t8\t9\t1\t2\t4\t\t\t\t\t\t\t21\t-7\t5\t0\t2\t14\t\t\t\t\t\t\t\t\n\t3\t21\t7\t10\t0\t4\t7\t\t\t\t\t\t\t15\t-3\t6\t0\t0\t9\t\t\t\t\t\t\t\t\n\t4\t21\t5\t9\t0\t4\t8\t\t\t\t\t\t\t16\t0\t4\t0\t4\t8\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week5", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "5", "weekNum": 5, "date": "5/12/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Sandy Cheeks", "lineup": "kirsten,maria,melissa,patrick,seigi", "subs": "gorman", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/G9aHstAXCXg", "highlights": null, "stats": {"points": 77, "earnedPoints": 3, "avgEP": 0.75, "attacks": 29, "avgAtt": 7.25, "blocks": 0, "avgBlocks": 0.0, "serves": 11, "avgServes": 2.75, "oppErrors": 37, "avgOE": 9.25, "oppPoints": 71, "oppEarnedPoints": -19, "avgOEP": -4.75, "oppAttacks": 15, "avgOppAtt": 3.75, "oppBlocks": 2, "avgOppBlocks": 0.5, "oppServes": 9, "avgOppServes": 2.25, "ourErrors": 45, "avgOurErrors": 11.25}, "setScores": [[21, 18], [14, 21], [21, 17], [21, 15]], "ksvImport": "\t1\t21\t5\t9\t0\t4\t8\t\t\t\t\t\t\t18\t-6\t6\t0\t0\t12\t\t\t\t\t\t\t\t\n\t2\t14\t0\t5\t0\t2\t7\t\t\t\t\t\t\t21\t-9\t3\t0\t3\t15\t\t\t\t\t\t\t\t\n\t3\t21\t1\t9\t0\t2\t10\t\t\t\t\t\t\t17\t-5\t2\t1\t3\t11\t\t\t\t\t\t\t\t\n\t4\t21\t-3\t6\t0\t3\t12\t\t\t\t\t\t\t15\t1\t4\t1\t3\t7\t\t\t\t\t\t\t\t"}, {"id": "Spring2026Week6", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "6", "weekNum": 6, "date": "5/19/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Queen Mary Elementary", "opponent": "Legrosmash", "lineup": "kirsten,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 3, "sl": 0, "result": "W", "video": "https://youtu.be/2AU36C802k8", "highlights": null, "stats": {"points": 64, "earnedPoints": 40, "avgEP": 13.33, "attacks": 24, "avgAtt": 8.0, "blocks": 4, "avgBlocks": 1.33, "serves": 12, "avgServes": 4.0, "oppErrors": 24, "avgOE": 8.0, "oppPoints": 50, "oppEarnedPoints": 18, "avgOEP": 6.0, "oppAttacks": 6, "avgOppAtt": 2.0, "oppBlocks": 3, "avgOppBlocks": 1.0, "oppServes": 9, "avgOppServes": 3.0, "ourErrors": 32, "avgOurErrors": 10.67}, "setScores": [[21, 16], [22, 18], [21, 16]], "ksvImport": "my\t1\t21\t13\t5\t2\t6\t8\t2\t1\t4\t1\t0\t1,3,2,4,2,3,3,3\t16\t7\t2\t1\t4\t9\t3\t2\t2\t2\t0\t1,1,1,1,3,2,7\t\t\nopp\t2\t22\t14\t11\t1\t2\t8\t2\t2\t3\t1\t0\t2,2,1,1,5,2,1,1,3,2,2\t18\t5\t1\t2\t2\t13\t2\t5\t2\t3\t1\t2,1,3,2,1,3,1,1,2,1,1\t\t\nmy\t3\t21\t13\t8\t1\t4\t8\t2\t4\t1\t1\t0\t0,3,3,1,4,1,2,5,2\t16\t6\t3\t0\t3\t10\t3\t2\t3\t2\t0\t4,1,2,2,1,3,2,1\t\t"}, {"id": "Spring2026Week7", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "7", "weekNum": 7, "date": "5/26/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Walter Moberly Elementary", "opponent": "Net Ninjas", "lineup": "kirsten,maria,melissa,patrick,seigi", "subs": "carlton", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/0Rw-7zHFdEY", "highlights": null, "stats": {"points": 79, "earnedPoints": 49, "avgEP": 12.25, "attacks": 33, "avgAtt": 8.25, "blocks": 2, "avgBlocks": 0.5, "serves": 14, "avgServes": 3.5, "oppErrors": 30, "avgOE": 7.5, "oppPoints": 68, "oppEarnedPoints": 24, "avgOEP": 6.0, "oppAttacks": 12, "avgOppAtt": 3.0, "oppBlocks": 1, "avgOppBlocks": 0.25, "oppServes": 11, "avgOppServes": 2.75, "ourErrors": 44, "avgOurErrors": 11.0}, "setScores": [[21, 14], [15, 21], [22, 17], [21, 16]], "ksvImport": "my\t1\t21\t13\t7\t0\t6\t8\t4\t1\t2\t0\t1\t0,1,4,6,2,2,2,2,2\t14\t3\t3\t0\t0\t11\t4\t1\t6\t0\t0\t2,1,1,1,4,1,3,1\t\t\nopp\t2\t15\t12\t9\t0\t3\t3\t2\t1\t0\t0\t0\t3,3,1,1,1,4,1,1\t21\t9\t5\t0\t4\t12\t7\t3\t0\t2\t0\t0,4,1,1,1,1,1,1,11\t\t\nmy\t3\t22\t11\t8\t1\t2\t11\t6\t3\t1\t0\t1\t4,5,1,5,2,4,1\t17\t4\t1\t0\t3\t13\t7\t2\t2\t2\t0\t1,2,4,3,2,5\t\t\nopp\t4\t21\t13\t9\t1\t3\t8\t3\t4\t1\t0\t0\t3,1,1,1,2,5,2,4,2\t16\t8\t3\t1\t4\t8\t3\t1\t3\t1\t0\t0,4,2,1,2,1,1,2,3\t\t"}, {"id": "Spring2026Week8", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "8", "weekNum": 8, "date": "6/2/26", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Setters of Catan", "lineup": "kirsten,maria,melissa,calvin,patrick,seigi", "subs": "derek", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/4FbNu6GNfVE", "highlights": null, "stats": {"points": 89, "earnedPoints": 68, "avgEP": 13.6, "attacks": 59, "avgAtt": 11.8, "blocks": 1, "avgBlocks": 0.2, "serves": 8, "avgServes": 1.6, "oppErrors": 21, "avgOE": 4.2, "oppPoints": 78, "oppEarnedPoints": 38, "avgOEP": 7.6, "oppAttacks": 27, "avgOppAtt": 5.4, "oppBlocks": 4, "avgOppBlocks": 0.8, "oppServes": 7, "avgOppServes": 1.4, "ourErrors": 40, "avgOurErrors": 8.0}, "setScores": [[18, 21], [21, 16], [21, 15], [14, 21], [15, 5]], "ksvImport": "opp\t1\t18\t16\t15\t0\t1\t2\t0\t0\t1\t1\t0\t1,3,1,3,3,1,1,2,1,1,1\t21\t9\t7\t1\t1\t12\t5\t3\t3\t1\t0\t1,4,1,2,1,2,1,1,1,3,2,2\tE,E,K,K,E,K,K,E,E,E,A,K,K,E,E,K,E,E,E,K,E\tK,K,K,A,E,K,K,K,K,K,K,K,K,K,K,K,E,K\nmy\t2\t21\t15\t13\t0\t2\t6\t4\t2\t0\t0\t0\t0,3,1,2,5,1,4,3,2\t16\t8\t8\t0\t0\t8\t5\t2\t1\t0\t0\t4,1,1,2,2,1,1,4\tK,E,E,K,K,K,E,E,E,E,K,K,E,E,K,K\tE,K,K,K,K,K,E,E,A,K,K,K,K,E,E,K,K,K,E,K,A\nopp\t3\t21\t13\t12\t0\t1\t8\t3\t2\t2\t1\t0\t1,4,1,2,5,1,1,3,1,2\t15\t7\t4\t1\t2\t8\t4\t1\t2\t1\t0\t2,1,1,1,1,2,4,1,1,1\tE,A,K,K,E,E,K,E,K,E,E,A,E,K,E\tE,K,K,E,E,K,K,K,K,E,E,E,K,E,E,K,K,K,K,K,A\nmy\t4\t14\t11\t10\t0\t1\t3\t0\t2\t1\t0\t0\t4,1,1,3,1,2,1,1\t21\t11\t5\t2\t4\t10\t6\t2\t1\t1\t0\t1,1,7,1,1,7,1,2\tE,K,K,E,K,E,A,K,E,E,K,K,A,K,E,E,A,A,E,E,E\tK,K,K,E,E,K,K,K,A,K,E,K,K,K\nmy\t5\t15\t13\t9\t1\t3\t2\t2\t0\t0\t0\t0\t0,2,1,7,5\t5\t3\t3\t0\t0\t2\t0\t1\t0\t1\t0\t2,1,1,1\tE,K,E,K,K\tK,A,K,K,A,K,K,K,E,E,K,K,A,K,K"}, {"id": "Spring2026Week9", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "9", "weekNum": 9, "date": "6/9/26", "time": "20:00", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Hastings Elementary", "opponent": "Hits & Giggles", "lineup": "kirsten,maria,melissa,calvin,patrick,seigi", "subs": "derek", "sw": 3, "sl": 1, "result": "W", "video": "https://youtu.be/1rGK0VSrTvU", "highlights": null, "stats": {"points": 85, "earnedPoints": 55, "avgEP": 13.75, "attacks": 47, "avgAtt": 11.75, "blocks": 3, "avgBlocks": 0.75, "serves": 5, "avgServes": 1.25, "oppErrors": 30, "avgOE": 7.5, "oppPoints": 75, "oppEarnedPoints": 41, "avgOEP": 10.25, "oppAttacks": 33, "avgOppAtt": 8.25, "oppBlocks": 3, "avgOppBlocks": 0.75, "oppServes": 5, "avgOppServes": 1.25, "ourErrors": 34, "avgOurErrors": 8.5}, "setScores": [[20, 22], [22, 20], [22, 16], [21, 17]], "ksvImport": "opp\t1\t20\t11\t9\t0\t2\t9\t5\t2\t2\t0\t0\t1,4,1,1,1,2,1,4,3,2\t22\t15\t11\t1\t3\t7\t4\t2\t1\t0\t0\t0,2,2,3,2,2,1,4,3,1,2\tK,E,E,A,K,E,E,E,E,K,A,K,E,K,K,K,B,A,K,K,K,K\tK,K,K,K,E,K,E,K,K,E,K,E,K,E,A,E,E,A,E,E\nmy\t2\t22\t14\t12\t1\t1\t8\t1\t4\t2\t1\t0\t0,1,2,2,1,1,4,4,3,1,1,2\t20\t10\t8\t0\t2\t10\t7\t1\t1\t1\t0\t1,2,3,2,1,1,3,2,2,2,1\tK,K,E,E,E,E,E,E,K,E,K,K,A,E,A,K,E,K,K,E\tE,K,K,E,K,K,K,B,E,E,K,E,K,K,E,E,K,A,K,K,K,E\nopp\t3\t22\t14\t13\t1\t0\t8\t2\t5\t1\t0\t0\t2,1,2,3,1,4,1,2,1,2,1,1,1\t16\t9\t7\t2\t0\t7\t3\t1\t1\t2\t0\t2,1,1,1,1,1,1,2,2,1,1,1,1\tE,B,E,B,E,E,E,K,E,E,K,K,K,K,K,K\tK,E,K,E,K,K,B,E,K,E,E,K,K,E,K,K,K,E,E,K,K,K\nmy\t4\t21\t16\t13\t1\t2\t5\t2\t0\t3\t0\t0\t0,1,1,2,1,2,7,1,4,2\t17\t7\t7\t0\t0\t10\t3\t3\t2\t2\t0\t3,1,1,4,2,1,2,2,1\tK,E,K,E,E,E,K,E,K,E,E,E,K,E,K,K,E\tE,E,K,K,E,E,A,K,K,K,K,E,B,K,K,K,K,K,A,K,K"}, {"id": "Spring2026Week10", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "10", "weekNum": 10, "date": "6/16/26", "time": "20:15", "type": "Playoffs", "division": "Tuesday Coed Int+", "location": "Begbie Elementary", "opponent": "Hammock Cakes", "lineup": "kirsten,maria,melissa,calvin,patrick,seigi", "subs": null, "sw": 0, "sl": 3, "result": "L", "video": "https://youtu.be/5vigI52ygiY", "highlights": null, "stats": {"points": 44, "earnedPoints": 24, "avgEP": 8.0, "attacks": 17, "avgAtt": 5.67, "blocks": 3, "avgBlocks": 1.0, "serves": 4, "avgServes": 1.33, "oppErrors": 20, "avgOE": 6.67, "oppPoints": 63, "oppEarnedPoints": 31, "avgOEP": 10.33, "oppAttacks": 21, "avgOppAtt": 7.0, "oppBlocks": 2, "avgOppBlocks": 0.67, "oppServes": 8, "avgOppServes": 2.67, "ourErrors": 32, "avgOurErrors": 10.67}, "setScores": [[15, 21], [16, 21], [13, 21]], "ksvImport": "opp\t1\t15\t9\t6\t2\t1\t6\t2\t0\t1\t3\t0\t2,2,1,1,1,1,1,1,1,3,1\t21\t10\t6\t1\t3\t11\t3\t2\t5\t1\t0\t3,1,2,1,3,2,1,1,1,2,2,2\tA,K,B,E,K,E,E,E,E,E,E,A,K,K,E,E,A,E,K,E,K\tE,E,K,E,K,K,K,B,E,E,K,K,B,A,E\nmy\t2\t16\t6\t6\t0\t0\t10\t2\t5\t2\t1\t0\t0,2,1,1,5,1,1,1,2,2\t21\t10\t9\t0\t1\t11\t6\t2\t1\t2\t0\t2,3,1,2,2,1,4,4,1,1\tK,E,E,E,E,E,E,K,E,A,K,K,K,E,E,E,K,K,E,K,K\tK,K,K,K,E,K,E,E,E,K,E,E,E,E,E,E\nopp\t3\t13\t9\t5\t1\t3\t4\t3\t0\t0\t0\t1\t1,7,1,1,1,2\t21\t11\t6\t1\t4\t10\t5\t3\t1\t0\t1\t3,1,7,3,2,4,1\tE,E,E,E,K,K,B,A,K,A,A,E,K,E,K,E,E,E,A,E,K\tE,E,A,B,E,K,A,A,K,E,K,K,K"}, {"id": "Spring2026Week11", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Spring", "week": "11", "weekNum": 11, "date": "6/23/26", "time": "20:00", "type": "Exhibition", "division": "Tuesday Coed Int+", "location": "Lord Tennyson Elementary", "opponent": "Pancakes over Waffles", "lineup": "melissa,calvin,patrick,seigi", "subs": "paula,camila", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/wBpZciQWA3M", "highlights": null, "stats": {"points": 90, "earnedPoints": 59, "avgEP": 11.8, "attacks": 46, "avgAtt": 9.2, "blocks": 3, "avgBlocks": 0.6, "serves": 10, "avgServes": 2.0, "oppErrors": 31, "avgOE": 6.2, "oppPoints": 86, "oppEarnedPoints": 49, "avgOEP": 9.8, "oppAttacks": 37, "avgOppAtt": 7.4, "oppBlocks": 2, "avgOppBlocks": 0.4, "oppServes": 10, "avgOppServes": 2.0, "ourErrors": 37, "avgOurErrors": 7.4}, "setScores": [[12, 21], [21, 17], [15, 21], [21, 19], [21, 8]], "ksvImport": "my\t1\t12\t8\t8\t0\t0\t4\t2\t1\t1\t0\t0\t2,1,1,1,2,1,1,1,1,1\t21\t16\t11\t1\t4\t5\t3\t1\t1\t0\t0\t1,3,4,1,2,2,1,4,1,2\tK,E,K,K,K,A,A,E,K,K,K,E,E,B,E,A,K,K,K,K,A\tE,E,E,K,K,K,K,K,K,K,E,K\nopp\t2\t21\t13\t11\t0\t2\t8\t4\t1\t3\t0\t0\t1,1,4,2,6,3,1,2,1\t17\t6\t4\t0\t2\t11\t6\t1\t2\t2\t0\t0,2,2,2,1,3,1,3,3\tE,K,K,E,E,E,E,E,E,E,K,K,E,A,E,E,A\tK,E,K,K,E,E,E,A,K,K,K,E,A,K,K,E,K,E,K,E,K\nmy\t3\t15\t12\t10\t1\t1\t3\t1\t2\t0\t0\t0\t1,1,1,1,2,1,2,2,2,2\t21\t14\t10\t1\t3\t7\t2\t2\t2\t1\t0\t2,2,5,2,2,1,1,1,3,2\tK,K,E,A,E,B,A,K,K,E,E,K,E,K,K,E,K,K,K,E,A\tB,K,K,K,E,K,K,K,E,K,A,K,K,K,E\nopp\t4\t21\t9\t6\t1\t2\t12\t4\t5\t1\t2\t0\t1,1,2,1,1,2,1,1,1,10\t19\t9\t8\t0\t1\t10\t4\t4\t1\t1\t0\t1,5,3,4,1,1,1,1,1,1\tE,K,E,K,E,K,E,K,A,E,E,E,E,E,K,K,K,E,K\tK,K,B,K,E,E,E,K,E,E,E,E,E,E,K,E,A,E,K,A,E\nmy\t5\t21\t17\t11\t1\t5\t4\t2\t2\t0\t0\t0\t1,1,2,6,5,2,2,2\t8\t4\t4\t0\t0\t4\t2\t1\t1\t0\t0\t2,1,1,1,1,1,1\tE,K,K,E,K,E,E,K\tA,K,K,E,K,A,A,E,K,E,K,E,K,A,K,K,K,K,A,K,B"}, {"id": "Fall2026Week1", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "1", "weekNum": 1, "date": "9/15/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "Legrosmash", "lineup": "sheima,maria,melissa,calvin,patrick", "subs": "derek", "sw": 3, "sl": 2, "result": "W", "video": "https://youtu.be/9gvmEniEt8k", "highlights": null, "stats": {"points": 95, "earnedPoints": 53, "avgEP": 10.6, "attacks": 33, "avgAtt": 6.6, "blocks": 4, "avgBlocks": 0.8, "serves": 16, "avgServes": 3.2, "oppErrors": 42, "avgOE": 8.4, "oppPoints": 84, "oppEarnedPoints": 39, "avgOEP": 7.8, "oppAttacks": 27, "avgOppAtt": 5.4, "oppBlocks": 3, "avgOppBlocks": 0.6, "oppServes": 11, "avgOppServes": 2.2, "ourErrors": 43, "avgOurErrors": 8.6}, "setScores": [[21, 16], [21, 18], [21, 23], [18, 21], [14, 6]], "ksvImport": "my\t1\t21\t12\t10\t0\t2\t9\t0\t2\t0\t5\t2\t4,2,2,1,1,2,1,4,4\t16\t7\t7\t1\t1\t7\t0\t2\t5\t0\t0\t2,1,1,1,3,2,3,2\tK,B,K,E,E,E,K,K,K,E,K,K,K,E,K,K\tE,K,A,K,E,K,A,K,E,E,K,K,K,K,A,E,E,K,E,K,E,E,E,K\nmy\t2\t21\t8\t4\t1\t3\t13\t2\t7\t1\t3\t0\t1,3,2,3,1,3,3,2,1,2\t18\t11\t6\t1\t4\t7\t2\t2\t0\t3\t0\t2,1,1,4,3,1,1,4,1\tE,A,E,K,E,E,A,A,E,K,A,B,E,K,K,E,K,K\tE,K,E,E,A,E,A,A,E,K,K,E,E,K,E,B,E,E,E\nopp\t3\t21\t14\t8\t2\t4\t7\t5\t1\t0\t1\t0\t3,1,1,2,1,3,2,2,1,3,2\t23\t10\t7\t1\t2\t13\t5\t3\t4\t1\t0\t2,1,2,5,1,1,1,1,4,1,1,3\tE,A,K,K,E,E,E,E,K,K,E,E,B,E,E,K,A,K,E,E,E,E,K\tK,E,K,K,B,E,E,E,K,A,A,K,A,B,K,E,K,K,A,E,E\nmy\t4\t18\t10\t6\t0\t4\t8\t3\t1\t1\t3\t0\t2,6,1,1,1,2,1,1,3\t21\t8\t5\t0\t3\t13\t5\t5\t3\t0\t0\t1,3,1,1,1,1,1,1,11\tK,E,E,E,K,E,K,E,E,E,E,E,K,E,E,E,A,K,A,E,A\tA,A,E,E,K,E,A,E,K,E,E,K,E,K,K,E,A,K\nopp\t5\t14\t9\t5\t1\t3\t5\t3\t0\t2\t0\t0\t5,4,3,2\t6\t3\t2\t0\t1\t3\t1\t1\t1\t0\t0\t0,2,3,1\tE,K,E,A,E,K\tE,K,A,E,K,E,E,B,K,E,K,A,K,A"}, {"id": "Fall2026Week2", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "2", "weekNum": 2, "date": "9/22/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "Sets on the Beach", "lineup": "sheima,melissa,maria,patrick,calvin,seigi", "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week3", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "3", "weekNum": 3, "date": "9/29/26", "time": "20:00", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Lord Tennyson Elementary", "opponent": "Safe Sets", "lineup": "sheima,melissa,maria,calvin,seigi", "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week4", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "4", "weekNum": 4, "date": "10/6/26", "time": "20:15", "type": "Regular", "division": "Tuesday Coed Int+", "location": "Elsie Roy Elementary", "opponent": "Block Busters", "lineup": "sheima,melissa,maria,calvin,seigi", "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week5", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "5", "weekNum": 5, "date": "10/20/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week6", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "6", "weekNum": 6, "date": "10/27/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week7", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "7", "weekNum": 7, "date": "11/3/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week8", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "8", "weekNum": 8, "date": "11/10/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week9", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "9", "weekNum": 9, "date": "11/17/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week10", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "10", "weekNum": 10, "date": "11/24/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week11", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "11", "weekNum": 11, "date": "12/1/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}, {"id": "Fall2026Week12", "team": "wgah", "teamName": "WGAH", "year": "2026", "season": "Fall", "week": "12", "weekNum": 12, "date": "12/8/26", "time": null, "type": null, "division": null, "location": null, "opponent": null, "lineup": null, "subs": null, "sw": null, "sl": null, "result": null, "video": null, "highlights": null, "stats": null, "setScores": null, "ksvImport": null}];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SEASON_PILL_CLASS = {Winter:'pill-winter', Spring:'pill-spring', Fall:'pill-fall'};
+// Both files are deployed together — relative path to the tracker in the same folder
+const KSV_TRACKER_URL = 'ksv_statTracker.html';
+
+// Teams, in first-appearance order (determines default team)
+const teamsList = [];
+MATCHES.forEach(m=>{
+  if(!teamsList.find(t=>t.slug===m.team)) teamsList.push({slug:m.team, name:m.teamName});
+});
+const defaultTeam = teamsList[0].slug;
+let activeTeam = defaultTeam;
+
+function parseDate(d){
+  if(!d) return null;
+  const [m,day,y] = d.split('/').map(Number);
+  const fullY = y < 100 ? 2000+y : y;
+  return new Date(fullY, m-1, day);
+}
+function shortDate(d){
+  const dt = parseDate(d);
+  if(!dt) return '';
+  return MONTHS[dt.getMonth()]+' '+dt.getDate();
+}
+function seasonKey(m){ return m.year+'-'+m.season; }
+function cap(s){ return s.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '); }
+
+function teamMatches(slug){ return MATCHES.filter(m=>m.team===slug); }
+function seasonOrderFor(slug){
+  const arr = [];
+  teamMatches(slug).forEach(m=>{ const k=seasonKey(m); if(!arr.includes(k)) arr.push(k); });
+  return arr;
+}
+function currentSeasonFor(slug){ const so=seasonOrderFor(slug); return so[so.length-1]; }
+
+function ytEmbed(url){
+  if(!url) return null;
+  const m = url.match(/(?:youtu\.be\/|v=)([A-Za-z0-9_-]{6,})/);
+  return m ? 'https://www.youtube-nocookie.com/embed/'+m[1]+'?rel=0' : null;
+}
+
+function seasonPill(m){
+  const cls = SEASON_PILL_CLASS[m.season] || 'pill-winter';
+  return '<span class="season-pill '+cls+'">'+m.season+' '+m.year+'</span>';
+}
+
+function badge(m){
+  if(!m.result) return '<span class="badge badge-upcoming">Upcoming</span>';
+  const cls = m.result==='W' ? 'badge-w' : (m.result==='L' ? 'badge-l' : 'badge-t');
+  const score = (m.sw!=null && m.sl!=null) ? (m.result+' '+m.sw+'-'+m.sl) : m.result;
+  return '<span class="badge '+cls+'">'+score+'</span>';
+}
+
+function statsTier(m){
+  if(!m.ksvImport) return null;
+  const lines = m.ksvImport.split('\n');
+  let hasBreakdown = false, hasSideouts = false;
+  lines.forEach(line=>{
+    const c = line.split('\t');
+    const breakdownSum = [8,9,10,11,12,20,21,22,23,24].reduce((s,i)=>s+(parseInt(c[i])||0),0);
+    if(breakdownSum !== 0) hasBreakdown = true;
+    if((c[26]||'').trim() || (c[27]||'').trim()) hasSideouts = true;
+  });
+  if(hasBreakdown && hasSideouts) return 'Adv Stats+';
+  if(hasBreakdown) return 'Adv Stats';
+  return 'Stats';
+}
+
+function statsPill(m){
+  const tier = statsTier(m);
+  return tier ? '<span class="stats-pill">'+tier+'</span>' : '';
+}
+
+function matchRow(m, scope){
+  const label = m.opponent ? ('vs '+m.opponent) : 'TBD';
+  const metaParts = [];
+  if(m.week) metaParts.push('Week '+m.week);
+  if(m.type) metaParts.push(m.type);
+  if(m.date) metaParts.push(shortDate(m.date));
+  if(m.location) metaParts.push(m.location);
+  if(!m.result && m.time) metaParts.push(m.time);
+  return '<div class="match-row" onclick="goMatch(\''+m.team+'\',\''+m.id+'\',\''+(scope||'all')+'\')">'
+    + '<div>'
+    + '<div class="row-top">'+seasonPill(m)+'<span class="opp">'+label+'</span></div>'
+    + '<div class="meta">'+metaParts.join(' \u00b7 ')+'</div>'
+    + '</div>'
+    + '<div class="badge-col">'+badge(m)+statsPill(m)+'</div>'
+    + '</div>';
+}
+
+function renderTeamSwitcher(){
+  const el = document.getElementById('team-switcher');
+  el.innerHTML = teamsList.map(t=>
+    '<option value="'+t.slug+'"'+(t.slug===activeTeam?' selected':'')+'>'+t.name+'</option>'
+  ).join('');
+}
+
+function slugify(s){
+  return (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function parseHash(hash){
+  const m = (hash||'').match(/^#\/team\/([^\/]+)\/(.*)$/);
+  if(!m) return null;
+  const team = decodeURIComponent(m[1]);
+  if(!teamsList.find(t=>t.slug===team)) return null;
+
+  const [pathPart, queryPart] = m[2].split('?');
+  const segs = pathPart.split('/').filter(Boolean).map(s=>decodeURIComponent(s));
+  const query = queryPart || '';
+
+  if(segs.length===1 && segs[0]==='matches') return { team, view:'matches', season:null, query };
+  if(segs.length===2 && segs[0]==='match') return { team, view:'match', id:segs[1], query };
+  if(segs.length===2 && segs[0]==='season') return { team, view:'season', key:segs[1] };
+  if(segs.length===1 && segs[0]==='opponents') return { team, view:'opponents', season:null };
+  if(segs.length===1 && segs[0]==='locations') return { team, view:'locations', season:null };
+  if(segs.length===2 && segs[0]==='opponent') return { team, view:'opponent', season:null, slug:segs[1] };
+  if(segs.length===2 && segs[0]==='location') return { team, view:'location', season:null, slug:segs[1] };
+  if(segs.length===3 && segs[0]==='season' && segs[2]==='opponents') return { team, view:'opponents', season:segs[1] };
+  if(segs.length===3 && segs[0]==='season' && segs[2]==='locations') return { team, view:'locations', season:segs[1] };
+  if(segs.length===4 && segs[0]==='season' && segs[2]==='opponent') return { team, view:'opponent', season:segs[1], slug:segs[3] };
+  if(segs.length===4 && segs[0]==='season' && segs[2]==='location') return { team, view:'location', season:segs[1], slug:segs[3] };
+  return null;
+}
+
+function defaultRoute(){
+  return '#/team/'+encodeURIComponent(defaultTeam)+'/season/'+encodeURIComponent(currentSeasonFor(defaultTeam));
+}
+
+function scopedList(team, skey){
+  const base = teamMatches(team);
+  return skey ? base.filter(m=>seasonKey(m)===skey) : base;
+}
+
+function router(){
+  const parsed = parseHash(location.hash);
+  if(!parsed){ location.hash = defaultRoute(); return; }
+
+  activeTeam = parsed.team;
+  const app = document.getElementById('app');
+  const hideSwitcher = ['match','opponents','locations','opponent','location'].includes(parsed.view);
+
+  document.getElementById('team-switcher').style.display = hideSwitcher ? 'none' : '';
+  renderTeamSwitcher();
+  document.getElementById('btn-all').classList.remove('active');
+  document.getElementById('btn-season').classList.remove('active');
+
+  if(parsed.view === 'match'){
+    const m = MATCHES.find(x=>x.team===parsed.team && x.id===parsed.id);
+    if(!m){ location.hash = defaultRoute(); return; }
+    const scopeParams = new URLSearchParams(parsed.query || '');
+    const scope = scopeParams.get('scope') || 'all';
+    renderMatch(app, m, scope);
+  } else if(parsed.view === 'season'){
+    if(!parsed.key || !seasonOrderFor(parsed.team).includes(parsed.key)){ location.hash = defaultRoute(); return; }
+    document.getElementById('btn-season').classList.add('active');
+    renderSeason(app, parsed.team, parsed.key);
+  } else if(parsed.view === 'matches'){
+    document.getElementById('btn-all').classList.add('active');
+    renderAllSeasons(app, parsed.team, parsed.query);
+  } else if(parsed.view === 'opponents' || parsed.view === 'locations'){
+    if(parsed.season && !seasonOrderFor(parsed.team).includes(parsed.season)){ location.hash = defaultRoute(); return; }
+    (parsed.view==='opponents' ? renderOpponentsList : renderLocationsList)(app, parsed.team, parsed.season);
+  } else if(parsed.view === 'opponent' || parsed.view === 'location'){
+    if(parsed.season && !seasonOrderFor(parsed.team).includes(parsed.season)){ location.hash = defaultRoute(); return; }
+    const allTime = teamMatches(parsed.team);
+    const field = parsed.view==='opponent' ? 'opponent' : 'location';
+    if(!allTime.some(m=>slugify(m[field])===parsed.slug)){ location.hash = defaultRoute(); return; }
+    (parsed.view==='opponent' ? renderOpponentDetail : renderLocationDetail)(app, parsed.team, parsed.season, parsed.slug);
+  }
+  window.scrollTo(0,0);
+}
+
+function goAllSeasons(){ location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/matches'; }
+function goCurrentSeason(){ location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/season/'+encodeURIComponent(currentSeasonFor(activeTeam)); }
+function goMatch(team, id, scope){
+  const q = scope && scope!=='all' ? ('?scope='+encodeURIComponent(scope)) : '';
+  location.hash = '#/team/'+encodeURIComponent(team)+'/match/'+encodeURIComponent(id)+q;
+}
+function goTeam(slug){
+  const parsed = parseHash(location.hash);
+  const view = parsed ? parsed.view : 'season';
+  if(view === 'matches'){
+    location.hash = '#/team/'+encodeURIComponent(slug)+'/matches';
+  } else {
+    location.hash = '#/team/'+encodeURIComponent(slug)+'/season/'+encodeURIComponent(currentSeasonFor(slug));
+  }
+}
+
+function renderAllSeasons(app, team, queryStr){
+  const params = new URLSearchParams(queryStr || '');
+  const fYear = params.get('year') || '';
+  const fSeason = params.get('season') || '';
+
+  const teamList = teamMatches(team);
+  const years = [...new Set(teamList.map(m=>m.year))].sort();
+  const seasons = [...new Set(teamList.map(m=>m.season))];
+
+  let list = teamList.slice().reverse();
+  if(fYear) list = list.filter(m=>m.year===fYear);
+  if(fSeason) list = list.filter(m=>m.season===fSeason);
+
+  app.innerHTML = ''
+    + '<div class="filters">'
+    + '<div class="filters-left">'
+    + '<select onchange="setFilter(\'year\', this.value)"><option value="">All years</option>'
+      + years.map(y=>'<option value="'+y+'"'+(y===fYear?' selected':'')+'>'+y+'</option>').join('')
+    + '</select>'
+    + '<select onchange="setFilter(\'season\', this.value)"><option value="">All seasons</option>'
+      + seasons.map(s=>'<option value="'+s+'"'+(s===fSeason?' selected':'')+'>'+s+'</option>').join('')
+    + '</select>'
+    + '</div>'
+    + '<div class="filters-right">'
+    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/opponents\'">Opponents</button>'
+    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/locations\'">Locations</button>'
+    + '</div>'
+    + '</div>'
+    + '<div class="match-list">'
+    + (list.length ? list.map(m=>matchRow(m,'all')).join('') : '<div class="empty">No matches match these filters.</div>')
+    + '</div>';
+}
+
+function setFilter(key, val){
+  const parsed = parseHash(location.hash);
+  const params = new URLSearchParams(parsed ? parsed.query : '');
+  if(val) params.set(key, val); else params.delete(key);
+  const qs = params.toString();
+  location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/matches' + (qs ? '?'+qs : '');
+}
+
+function recordStr(list){
+  const played = list.filter(m=>m.result);
+  const w = played.filter(m=>m.result==='W').length;
+  const l = played.filter(m=>m.result==='L').length;
+  const t = played.filter(m=>m.result==='T').length;
+  return played.length ? (w+'-'+l+(t?'-'+t:'')) : 'No matches played yet';
+}
+
+function inferPlace(list){
+  const playoffs = list.filter(m=>m.type==='Playoffs' && m.result).sort((a,b)=>(a.weekNum||0)-(b.weekNum||0));
+  const n = playoffs.length;
+  if(!n) return null;
+  const allWon = playoffs.every(g=>g.result==='W');
+  if(allWon) return '1st Place (Champions)';
+  const last = playoffs[n-1];
+  const beforeLast = n>=2 ? playoffs[n-2] : null;
+  const allButLastWon = playoffs.slice(0,-1).every(g=>g.result==='W') && last.result==='L';
+  if(allButLastWon) return '2nd Place';
+  if(beforeLast && beforeLast.result==='L'){
+    return last.result==='W' ? '3rd Place' : '4th Place';
+  }
+  return '? Place';
+}
+
+function uniqueNames(list, field){
+  const names = new Set();
+  list.forEach(m=>{
+    if(m[field]) m[field].split(',').forEach(n=>{ n = n.trim(); if(n) names.add(cap(n)); });
+  });
+  return Array.from(names).sort();
+}
+
+function uniqueNames(list, field){
+  const names = new Set();
+  list.forEach(m=>{
+    if(m[field]) m[field].split(',').forEach(n=>{ n = n.trim(); if(n) names.add(cap(n)); });
+  });
+  return Array.from(names).sort();
+}
+
+function fmtStat(n){ return (n==null || isNaN(n)) ? '\u2013' : n.toFixed(2); }
+function avgOf(arr, key){
+  const vals = arr.map(r=>r[key]).filter(v=>v!=null);
+  if(!vals.length) return null;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+
+function seasonStatsRows(list, side){
+  return list.filter(m=>m.stats).map(m=>{
+    const s = m.stats;
+    const att = side==='us' ? s.avgAtt : s.avgOppAtt;
+    const blk = side==='us' ? s.avgBlocks : s.avgOppBlocks;
+    const srv = side==='us' ? s.avgServes : s.avgOppServes;
+    const err = side==='us' ? s.avgOurErrors : s.avgOE;
+    const prod = (att!=null||blk!=null||srv!=null) ? ((att||0)+(blk||0)+(srv||0)) : null;
+    const prodErr = prod!=null ? prod-(err||0) : null;
+    return { match:m, att, blk, srv, err, prod, prodErr };
+  });
+}
+
+function statsChartSvg(rows){
+  const w=680, h=185, padL=8, padR=8, padT=10, padB=26;
+  const prodVals = rows.map(r=>r.prod);
+  const errVals = rows.map(r=>r.err);
+  const allVals = prodVals.concat(errVals).filter(v=>v!=null);
+  if(!allVals.length) return '';
+  const maxV = Math.max(...allVals, 1);
+  const minV = Math.min(0, ...allVals);
+  const n = rows.length;
+  const xStep = n>1 ? (w-padL-padR)/(n-1) : 0;
+  const x = i => padL + i*xStep;
+  const y = v => h-padB - ((v-minV)/((maxV-minV)||1))*(h-padT-padB);
+  const path = vals => vals.map((v,i)=>(i===0?'M':'L')+x(i)+','+y(v==null?0:v)).join(' ');
+  const dots = (vals,color) => vals.map((v,i)=>v==null?'':'<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="'+color+'"></circle>').join('');
+  const labels = rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-8)+'" font-size="9" fill="var(--text3)" text-anchor="middle">Wk'+(r.match.week||'')+'</text>').join('');
+  return '<div class="stats-chart-wrap">'
+    + '<svg viewBox="0 0 '+w+' '+h+'" class="stats-chart" preserveAspectRatio="none">'
+    + '<line x1="'+padL+'" y1="'+y(0)+'" x2="'+(w-padR)+'" y2="'+y(0)+'" stroke="var(--border2)" stroke-width="1"/>'
+    + '<path d="'+path(prodVals)+'" fill="none" stroke="#378ADD" stroke-width="2"/>'
+    + dots(prodVals,'#378ADD')
+    + '<path d="'+path(errVals)+'" fill="none" stroke="#E24B4A" stroke-width="2"/>'
+    + dots(errVals,'#E24B4A')
+    + labels
+    + '</svg>'
+    + '<div class="stats-chart-legend"><span><span class="dot" style="background:#378ADD"></span>Production</span><span><span class="dot" style="background:#E24B4A"></span>Errors</span></div>'
+    + '</div>';
+}
+
+function seasonStatsHtml(list, side, teamLabel){
+  const rows = seasonStatsRows(list, side);
+  if(!rows.length) return '<div class="empty-note">No stats available for this season</div>';
+
+  const summaryLabel = side==='us' ? teamLabel : 'All Opponents';
+  const summaryRow = '<tr class="stats-summary-row">'
+    + '<td class="stat-row-label">'+summaryLabel+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'att'))+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'blk'))+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'srv'))+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'err'))+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'prod'))+'</td>'
+    + '<td>'+fmtStat(avgOf(rows,'prodErr'))+'</td>'
+    + '</tr>';
+
+  const tableRows = rows.map(r=>{
+    const wk = r.match.week ? ('Wk'+r.match.week+' ') : '';
+    const label = side==='us' ? (wk+'vs '+(r.match.opponent||'TBD')) : (wk+(r.match.opponent||'TBD'));
+    return '<tr onclick="goMatch(\''+r.match.team+'\',\''+r.match.id+'\')">'
+    + '<td class="stat-row-label">'+label+'</td>'
+    + '<td>'+fmtStat(r.att)+'</td>'
+    + '<td>'+fmtStat(r.blk)+'</td>'
+    + '<td>'+fmtStat(r.srv)+'</td>'
+    + '<td>'+fmtStat(r.err)+'</td>'
+    + '<td>'+fmtStat(r.prod)+'</td>'
+    + '<td>'+fmtStat(r.prodErr)+'</td>'
+    + '</tr>';
+  }).join('');
+
+  const tableHtml = '<table class="season-stats-table"><thead><tr>'
+    + '<th class="stat-row-label">Match</th><th>Att</th><th>Blk</th><th>Srv</th><th>Err</th><th>Prod</th><th>Prod\u2212Err</th>'
+    + '</tr></thead><tbody>'+summaryRow+tableRows+'</tbody></table>';
+
+  return statsChartSvg(rows) + tableHtml;
+}
+
+function statsTabHtml(list, team){
+  const teamLabel = (teamsList.find(t=>t.slug===team)||{}).name || team;
+  return '<div class="stats-subtoggle-wrap">'
+    + '<div class="stats-subtoggle">'
+    + '<button class="stats-sub-btn active" id="stats-sub-us" onclick="showStatsSide(\'us\')">'+teamLabel+'</button>'
+    + '<button class="stats-sub-btn" id="stats-sub-opp" onclick="showStatsSide(\'opp\')">Opponents</button>'
+    + '</div>'
+    + '</div>'
+    + '<div id="stats-side-us">'+seasonStatsHtml(list,'us',teamLabel)+'</div>'
+    + '<div id="stats-side-opp" style="display:none">'+seasonStatsHtml(list,'opp',teamLabel)+'</div>';
+}
+
+function showStatsSide(side){
+  document.getElementById('stats-side-us').style.display = side==='us' ? '' : 'none';
+  document.getElementById('stats-side-opp').style.display = side==='opp' ? '' : 'none';
+  document.getElementById('stats-sub-us').classList.toggle('active', side==='us');
+  document.getElementById('stats-sub-opp').classList.toggle('active', side==='opp');
+}
+
+function scopeLabelFor(skey){
+  return skey ? (skey.split('-')[1]+' '+skey.split('-')[0]) : 'All-time';
+}
+
+function opponentStats(list){
+  const map = {};
+  list.forEach(m=>{
+    if(!m.opponent) return;
+    const key = m.opponent;
+    if(!map[key]) map[key] = { name:key, slug:slugify(key), played:0, w:0, l:0, t:0 };
+    if(m.result){
+      map[key].played++;
+      if(m.result==='W') map[key].w++;
+      else if(m.result==='L') map[key].l++;
+      else if(m.result==='T') map[key].t++;
+    }
+  });
+  return Object.values(map).sort((a,b)=> b.played-a.played || b.w-a.w || a.name.localeCompare(b.name));
+}
+
+function locationStats(list){
+  const map = {};
+  list.forEach(m=>{
+    if(!m.location) return;
+    const key = m.location;
+    if(!map[key]) map[key] = { name:key, slug:slugify(key), played:0 };
+    if(m.result) map[key].played++;
+  });
+  return Object.values(map).sort((a,b)=> b.played-a.played || a.name.localeCompare(b.name));
+}
+
+function renderOpponentsList(app, team, skey){
+  const list = scopedList(team, skey);
+  const opps = opponentStats(list);
+  const base = skey ? ('#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(skey)+'/opponent/') : ('#/team/'+encodeURIComponent(team)+'/opponent/');
+  const rows = opps.map(o=>{
+    const record = o.w+'-'+o.l+(o.t?'-'+o.t:'');
+    return '<div class="match-row" onclick="location.hash=\''+base+encodeURIComponent(o.slug)+'\'">'
+      + '<div><div class="opp">'+o.name+'</div></div>'
+      + '<div class="badge-col"><span class="badge badge-t">'+record+'</span><span class="stats-pill">'+o.played+' Matches</span></div>'
+      + '</div>';
+  }).join('');
+  app.innerHTML = ''
+    + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
+    + '<div class="detail-header"><div><h2>Opponents</h2><div class="meta">'+scopeLabelFor(skey)+'</div></div></div>'
+    + '<div class="match-list">'+(rows || '<div class="empty">No opponents yet.</div>')+'</div>';
+}
+
+function renderLocationsList(app, team, skey){
+  const list = scopedList(team, skey);
+  const locs = locationStats(list);
+  const base = skey ? ('#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(skey)+'/location/') : ('#/team/'+encodeURIComponent(team)+'/location/');
+  const rows = locs.map(l=>
+    '<div class="match-row" onclick="location.hash=\''+base+encodeURIComponent(l.slug)+'\'">'
+    + '<div><div class="opp">'+l.name+'</div></div>'
+    + '<div class="badge-col"><span class="badge badge-upcoming">'+l.played+' Matches</span></div>'
+    + '</div>'
+  ).join('');
+  app.innerHTML = ''
+    + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
+    + '<div class="detail-header"><div><h2>Locations</h2><div class="meta">'+scopeLabelFor(skey)+'</div></div></div>'
+    + '<div class="match-list">'+(rows || '<div class="empty">No locations yet.</div>')+'</div>';
+}
+
+function renderOpponentDetail(app, team, skey, slug){
+  const allTime = teamMatches(team).filter(m=>slugify(m.opponent)===slug);
+  const name = allTime.length ? allTime[0].opponent : slug;
+  const scoped = scopedList(team, skey).filter(m=>slugify(m.opponent)===slug);
+  const played = scoped.filter(m=>m.result);
+  const w = played.filter(m=>m.result==='W').length;
+  const l = played.filter(m=>m.result==='L').length;
+  const t = played.filter(m=>m.result==='T').length;
+  const record = played.length ? (w+'-'+l+(t?'-'+t:'')) : 'No matches played yet';
+  const list = skey ? scoped : scoped.slice().reverse();
+  const options = '<option value=""'+(skey?'':' selected')+'>All Matches</option>'
+    + seasonOrderFor(team).slice().reverse().map(k=>'<option value="'+k+'"'+(k===skey?' selected':'')+'>'+k.split('-')[1]+' '+k.split('-')[0]+'</option>').join('');
+  const selectHtml = '<select onchange="location.hash = this.value ? (\'#/team/'+encodeURIComponent(team)+'/season/\'+encodeURIComponent(this.value)+\'/opponent/'+encodeURIComponent(slug)+'\') : \'#/team/'+encodeURIComponent(team)+'/opponent/'+encodeURIComponent(slug)+'\'">'+options+'</select>';
+  app.innerHTML = ''
+    + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
+    + '<div class="detail-header"><div><h2>'+name+'</h2><div class="meta">'+scopeLabelFor(skey)+' \u00b7 Record: '+record+'</div></div>'+selectHtml+'</div>'
+    + '<div class="match-list">'
+    + (list.length ? list.map(m=>matchRow(m,skey||'all')).join('') : '<div class="empty">No matches found</div>')
+    + '</div>';
+}
+
+function renderLocationDetail(app, team, skey, slug){
+  const allTime = teamMatches(team).filter(m=>slugify(m.location)===slug);
+  const name = allTime.length ? allTime[0].location : slug;
+  const scoped = scopedList(team, skey).filter(m=>slugify(m.location)===slug);
+  const played = scoped.filter(m=>m.result).length;
+  const list = skey ? scoped : scoped.slice().reverse();
+  const options = '<option value=""'+(skey?'':' selected')+'>All Matches</option>'
+    + seasonOrderFor(team).slice().reverse().map(k=>'<option value="'+k+'"'+(k===skey?' selected':'')+'>'+k.split('-')[1]+' '+k.split('-')[0]+'</option>').join('');
+  const selectHtml = '<select onchange="location.hash = this.value ? (\'#/team/'+encodeURIComponent(team)+'/season/\'+encodeURIComponent(this.value)+\'/location/'+encodeURIComponent(slug)+'\') : \'#/team/'+encodeURIComponent(team)+'/location/'+encodeURIComponent(slug)+'\'">'+options+'</select>';
+  app.innerHTML = ''
+    + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
+    + '<div class="detail-header"><div><h2>'+name+'</h2><div class="meta">'+scopeLabelFor(skey)+' \u00b7 '+played+' matches played</div></div>'+selectHtml+'</div>'
+    + '<div class="match-list">'
+    + (list.length ? list.map(m=>matchRow(m,skey||'all')).join('') : '<div class="empty">No matches found</div>')
+    + '</div>';
+}
+
+function renderSeason(app, team, key){
+  const [year, season] = key.split('-');
+  const list = teamMatches(team).filter(m=>m.year===year && m.season===season);
+  const divisions = [];
+  list.forEach(m=>{ if(m.division && !divisions.includes(m.division)) divisions.push(m.division); });
+  let division = divisions.join(' \u2192 ');
+
+  const hasUpcoming = list.some(m=>!m.result);
+  const place = !hasUpcoming ? inferPlace(list) : null;
+  if(place) division = division ? (division+' - '+place) : place;
+
+  const overallRecord = recordStr(list);
+  const regularRecord = recordStr(list.filter(m=>m.type==='Regular'));
+
+  const coreMembers = uniqueNames(list, 'lineup');
+  const subs = uniqueNames(list, 'subs');
+
+  const seasonOrder = seasonOrderFor(team);
+
+  app.innerHTML = ''
+    + '<div class="season-info-card">'
+    + '<div class="season-header">'
+    + '<div class="title-row"><h2>'+season+' '+year+'</h2>'
+    + '<div class="season-select-col">'
+    + '<select onchange="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/\'+encodeURIComponent(this.value)">'
+      + seasonOrder.slice().reverse().map(k=>'<option value="'+k+'"'+(k===key?' selected':'')+'>'+k.split('-')[1]+' '+k.split('-')[0]+'</option>').join('')
+    + '</select>'
+    + '<div class="season-links-row">'
+    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/opponents\'">Opponents</button>'
+    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/locations\'">Locations</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + (division ? '<div class="sub">'+division+'</div>' : '')
+    + '</div>'
+    + '<div class="record">Overall Record: <b>'+overallRecord+'</b></div>'
+    + '<div class="record">Regular Season Record: <b>'+regularRecord+'</b></div>'
+    + (coreMembers.length ? '<div class="section-title">Core Members</div><div class="roster"><div>'+coreMembers.join(', ')+'</div></div>' : '')
+    + (subs.length ? '<div class="section-title">Subs</div><div class="roster"><div class="subs">'+subs.join(', ')+'</div></div>' : '')
+    + '</div>'
+    + '<div class="season-tab-toggle">'
+    + '<button class="season-tab-btn active" id="season-tab-btn-matches" onclick="showSeasonTab(\'matches\')">Matches</button>'
+    + '<button class="season-tab-btn" id="season-tab-btn-stats" onclick="showSeasonTab(\'stats\')">Stats</button>'
+    + '</div>'
+    + '<div id="season-tab-matches">'
+    + '<div class="match-list">'
+    + (list.length ? list.map(m=>matchRow(m,key)).join('') : '<div class="empty">No matches in this season.</div>')
+    + '</div>'
+    + '</div>'
+    + '<div id="season-tab-stats" style="display:none">'
+    + statsTabHtml(list, team)
+    + '</div>';
+}
+
+function showSeasonTab(tab){
+  document.getElementById('season-tab-matches').style.display = tab==='matches' ? '' : 'none';
+  document.getElementById('season-tab-stats').style.display = tab==='stats' ? '' : 'none';
+  document.getElementById('season-tab-btn-matches').classList.toggle('active', tab==='matches');
+  document.getElementById('season-tab-btn-stats').classList.toggle('active', tab==='stats');
+}
+
+function boxScoreHtml(m){
+  if(!m.setScores || !m.setScores.length){
+    return '<div class="empty-note">No set scores available</div>';
+  }
+  const numCols = Math.max(5, m.setScores.length);
+  const usWonCount = m.setScores.filter(s=>s[0]>s[1]).length;
+  const themWonCount = m.setScores.filter(s=>s[1]>s[0]).length;
+  const usIsWinner = usWonCount > themWonCount;
+
+  const header = '<tr><th class="team-col"></th>'
+    + Array.from({length:numCols},(_,i)=>'<th>'+(i+1)+'</th>').join('')
+    + '<th class="final-col">Final</th></tr>';
+
+  function cell(val, won){
+    if(val==null) return '<td class="set-empty">\u2013</td>';
+    return '<td'+(won?' class="set-won"':'')+'>'+val+'</td>';
+  }
+
+  const usCells = Array.from({length:numCols},(_,i)=>{
+    const s = m.setScores[i];
+    return s ? cell(s[0], s[0]>s[1]) : cell(null);
+  }).join('');
+  const themCells = Array.from({length:numCols},(_,i)=>{
+    const s = m.setScores[i];
+    return s ? cell(s[1], s[1]>s[0]) : cell(null);
+  }).join('');
+
+  const usRow = '<tr'+(usIsWinner?' class="winner"':'')+'><td class="team-name">'+m.teamName+'</td>'+usCells+'<td class="final-col">'+usWonCount+'</td></tr>';
+  const themRow = '<tr'+(!usIsWinner?' class="winner"':'')+'><td class="team-name">'+(m.opponent||'Opponent')+'</td>'+themCells+'<td class="final-col">'+themWonCount+'</td></tr>';
+
+  return '<table class="box-score"><thead>'+header+'</thead><tbody>'+usRow+themRow+'</tbody></table>';
+}
+
+function ksvTrackerLink(m){
+  if(!m.ksvImport || !KSV_TRACKER_URL) return '';
+  const url = KSV_TRACKER_URL + '#/import?my=' + encodeURIComponent(m.teamName)
+    + '&opp=' + encodeURIComponent(m.opponent || 'Opponent')
+    + '&data=' + encodeURIComponent(m.ksvImport);
+  return '<a class="ksv-link" href="'+url+'" target="_blank" rel="noopener">Full Stats \u2197</a>';
+}
+
+function statsHtml(m){
+  if(!m.stats){
+    return '<div class="section-title">Match stats</div><div class="empty-note">Stats not available</div>';
+  }
+  const s = m.stats;
+  const cats = [
+    {label:'Attack (kill)', mine: s.attacks, theirs: s.oppAttacks, color:'#378ADD'},
+    {label:'Block', mine: s.blocks, theirs: s.oppBlocks, color:'#E8C319'},
+    {label:'Serve (ace)', mine: s.serves, theirs: s.oppServes, color:'#2EAB6A'},
+    {label:'Opponent errors', mine: s.oppErrors, theirs: s.ourErrors, color:'#E24B4A'}
+  ];
+  const maxVal = Math.max(1, ...cats.flatMap(c=>[c.mine||0, c.theirs||0]));
+
+  const header = '<div class="err-bf-header">'
+    + '<div class="err-bf-head-left">'+m.teamName+'</div>'
+    + '<div class="err-bf-head-center"></div>'
+    + '<div class="err-bf-head-right">'+(m.opponent||'Opponent')+'</div>'
+    + '</div>';
+
+  const rows = cats.map(c=>{
+    const mv = c.mine!=null ? c.mine : 0;
+    const ov = c.theirs!=null ? c.theirs : 0;
+    const mPct = Math.round(mv/maxVal*100);
+    const oPct = Math.round(ov/maxVal*100);
+    return '<div class="err-bf-row">'
+      + '<div class="err-bf-bar-left"><div class="err-bf-fill" style="width:'+mPct+'%;background:'+c.color+'"></div><span class="err-bf-val" style="color:'+c.color+'">'+mv+'</span></div>'
+      + '<div class="err-bf-label">'+c.label+'</div>'
+      + '<div class="err-bf-bar-right"><span class="err-bf-val" style="color:'+c.color+'">'+ov+'</span><div class="err-bf-fill" style="width:'+oPct+'%;background:'+c.color+'"></div></div>'
+      + '</div>';
+  }).join('');
+
+  const totalRow = '<div class="err-bf-row" style="border-top:0.5px solid var(--border2);margin-top:4px;padding-top:8px">'
+    + '<div class="err-bf-bar-left"><span class="err-bf-val" style="color:var(--text)">'+(s.points!=null?s.points:'\u2013')+'</span></div>'
+    + '<div class="err-bf-label" style="color:var(--text2)">Total</div>'
+    + '<div class="err-bf-bar-right"><span class="err-bf-val" style="color:var(--text)">'+(s.oppPoints!=null?s.oppPoints:'\u2013')+'</span></div>'
+    + '</div>';
+
+  return '<div class="section-title">Match stats</div>'
+    + '<div class="err-butterfly">' + header + rows + totalRow + '</div>'
+    + ksvTrackerLink(m);
+}
+
+function videoSection(m){
+  const fullEmbed = ytEmbed(m.video);
+  const hlEmbed = ytEmbed(m.highlights);
+
+  if(!fullEmbed && !hlEmbed){
+    return '<div class="no-video">No video available for this match</div>';
+  }
+  if(fullEmbed && hlEmbed){
+    return '<div class="video-toggle">'
+      + '<button class="video-tab active" id="tab-full" onclick="showVideo(\'full\')">Full Match</button>'
+      + '<button class="video-tab" id="tab-highlights" onclick="showVideo(\'highlights\')">Highlights</button>'
+      + '</div>'
+      + '<div class="video-wrap" id="video-full-wrap"><iframe src="'+fullEmbed+'" allowfullscreen></iframe></div>'
+      + '<div class="video-wrap" id="video-highlights-wrap" data-src="'+hlEmbed+'" style="display:none"></div>';
+  }
+  const only = fullEmbed || hlEmbed;
+  return '<div class="video-wrap"><iframe src="'+only+'" allowfullscreen></iframe></div>';
+}
+
+function showVideo(which){
+  const fullWrap = document.getElementById('video-full-wrap');
+  const hlWrap = document.getElementById('video-highlights-wrap');
+  fullWrap.style.display = which==='full' ? '' : 'none';
+  hlWrap.style.display = which==='highlights' ? '' : 'none';
+  document.getElementById('tab-full').classList.toggle('active', which==='full');
+  document.getElementById('tab-highlights').classList.toggle('active', which==='highlights');
+  if(which==='highlights' && !hlWrap.querySelector('iframe')){
+    hlWrap.innerHTML = '<iframe src="'+hlWrap.dataset.src+'" allowfullscreen></iframe>';
+  }
+}
+
+function renderMatch(app, m, scope){
+  const seasonPrefix = (scope && scope!=='all') ? ('season/'+encodeURIComponent(scope)+'/') : '';
+  const oppHref = m.opponent ? ('#/team/'+encodeURIComponent(m.team)+'/'+seasonPrefix+'opponent/'+encodeURIComponent(slugify(m.opponent))) : null;
+  const locHref = m.location ? ('#/team/'+encodeURIComponent(m.team)+'/'+seasonPrefix+'location/'+encodeURIComponent(slugify(m.location))) : null;
+  const oppLabel = m.opponent
+    ? (oppHref ? '<span class="detail-link" onclick="location.hash=\''+oppHref+'\'">'+m.opponent+'</span>' : m.opponent)
+    : 'TBD';
+
+  const meta = [m.type, m.season+' '+m.year, 'Week '+m.week].filter(Boolean).join(' \u00b7 ');
+  const locationPart = m.location ? (locHref ? '<span class="detail-link" onclick="location.hash=\''+locHref+'\'">'+m.location+'</span>' : m.location) : '';
+  const meta2 = [locationPart, m.date, m.time].filter(Boolean).join(' \u00b7 ');
+
+  let rosterHtml = '';
+  if(m.lineup || m.subs){
+    rosterHtml = '<div class="section-title">Lineup</div><div class="roster">'
+      + (m.lineup ? '<div>'+cap(m.lineup.split(',').map(s=>s.trim()).join(', '))+'</div>' : '')
+      + (m.subs ? '<div class="subs">Subs: '+cap(m.subs.split(',').map(s=>s.trim()).join(', '))+'</div>' : '')
+      + '</div>';
+  }
+
+  app.innerHTML = ''
+    + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
+    + '<div class="detail-header">'
+    + '<div><h2>'+(m.opponent?('vs '+oppLabel):'TBD')+'</h2>'
+    + '<div class="meta">'+meta+'<br>'+meta2+'</div></div>'
+    + badge(m)
+    + '</div>'
+    + videoSection(m)
+    + boxScoreHtml(m)
+    + statsHtml(m)
+    + rosterHtml;
+}
+
+window.addEventListener('hashchange', router);
+router();
+</script>
+</body>
+</html>
