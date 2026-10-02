@@ -57,6 +57,8 @@ select{background:var(--bg2);color:var(--text);border:0.5px solid var(--border);
 .season-tab-toggle{display:flex;gap:8px;margin-bottom:16px}
 .season-tab-btn{padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font)}
 .season-tab-btn.active{background:var(--blue-bg);color:var(--blue-light);border-color:var(--blue)}
+.season-tab-btn.disabled{opacity:0.4;cursor:not-allowed}
+.matches-top-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .stats-subtoggle-wrap{display:flex;justify-content:center;margin:2px 0 18px}
 .stats-subtoggle{display:inline-flex;background:var(--bg3);border-radius:999px;padding:3px;gap:2px}
 .stats-sub-btn{padding:5px 16px;border-radius:999px;border:none;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font)}
@@ -103,6 +105,8 @@ select{background:var(--bg2);color:var(--text);border:0.5px solid var(--border);
 .box-score td.team-name{text-align:left;font-size:13px;color:var(--text2)}
 .box-score td.final-col{border-left:1px solid var(--border);font-weight:500}
 .box-score td.set-won{color:var(--green);font-weight:500}
+.box-score .bs-col-active{background:var(--blue-bg)}
+.box-score th.bs-col-active{color:var(--blue-light)}
 .box-score tr.winner td.team-name{color:var(--text)}
 .box-score tr.winner td.final-col{color:var(--green)}
 .box-score td.set-empty{color:var(--text3)}
@@ -130,10 +134,6 @@ select{background:var(--bg2);color:var(--text);border:0.5px solid var(--border);
   <div class="topbar-row">
     <h1>KSVolleyball Archive</h1>
     <select id="team-switcher" onchange="goTeam(this.value)"></select>
-  </div>
-  <div class="mode-toggle">
-    <button class="mode-btn" id="btn-season" onclick="goCurrentSeason()">Single Season</button>
-    <button class="mode-btn" id="btn-all" onclick="goAllSeasons()">All Matches</button>
   </div>
 </div>
 <div class="wrap" id="app"></div>
@@ -320,8 +320,6 @@ function router(){
 
   document.getElementById('team-switcher').style.display = hideSwitcher ? 'none' : '';
   renderTeamSwitcher();
-  document.getElementById('btn-all').classList.remove('active');
-  document.getElementById('btn-season').classList.remove('active');
 
   if(parsed.view === 'match'){
     const m = MATCHES.find(x=>x.team===parsed.team && x.id===parsed.id);
@@ -331,11 +329,9 @@ function router(){
     renderMatch(app, m, scope);
   } else if(parsed.view === 'season'){
     if(!parsed.key || !seasonOrderFor(parsed.team).includes(parsed.key)){ location.hash = defaultRoute(); return; }
-    document.getElementById('btn-season').classList.add('active');
-    renderSeason(app, parsed.team, parsed.key);
+    renderMatchesPage(app, parsed.team, parsed.key);
   } else if(parsed.view === 'matches'){
-    document.getElementById('btn-all').classList.add('active');
-    renderAllSeasons(app, parsed.team, parsed.query);
+    renderMatchesPage(app, parsed.team, null);
   } else if(parsed.view === 'opponents' || parsed.view === 'locations'){
     if(parsed.season && !seasonOrderFor(parsed.team).includes(parsed.season)){ location.hash = defaultRoute(); return; }
     (parsed.view==='opponents' ? renderOpponentsList : renderLocationsList)(app, parsed.team, parsed.season);
@@ -349,8 +345,6 @@ function router(){
   window.scrollTo(0,0);
 }
 
-function goAllSeasons(){ location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/matches'; }
-function goCurrentSeason(){ location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/season/'+encodeURIComponent(currentSeasonFor(activeTeam)); }
 function goMatch(team, id, scope){
   const q = scope && scope!=='all' ? ('?scope='+encodeURIComponent(scope)) : '';
   location.hash = '#/team/'+encodeURIComponent(team)+'/match/'+encodeURIComponent(id)+q;
@@ -365,45 +359,68 @@ function goTeam(slug){
   }
 }
 
-function renderAllSeasons(app, team, queryStr){
-  const params = new URLSearchParams(queryStr || '');
-  const fYear = params.get('year') || '';
-  const fSeason = params.get('season') || '';
+function renderMatchesPage(app, team, key){
+  const list = key ? teamMatches(team).filter(m=>seasonKey(m)===key) : teamMatches(team);
+  const seasonOrder = seasonOrderFor(team);
 
-  const teamList = teamMatches(team);
-  const years = [...new Set(teamList.map(m=>m.year))].sort();
-  const seasons = [...new Set(teamList.map(m=>m.season))];
-
-  let list = teamList.slice().reverse();
-  if(fYear) list = list.filter(m=>m.year===fYear);
-  if(fSeason) list = list.filter(m=>m.season===fSeason);
-
-  app.innerHTML = ''
-    + '<div class="filters">'
-    + '<div class="filters-left">'
-    + '<select onchange="setFilter(\'year\', this.value)"><option value="">All years</option>'
-      + years.map(y=>'<option value="'+y+'"'+(y===fYear?' selected':'')+'>'+y+'</option>').join('')
-    + '</select>'
-    + '<select onchange="setFilter(\'season\', this.value)"><option value="">All seasons</option>'
-      + seasons.map(s=>'<option value="'+s+'"'+(s===fSeason?' selected':'')+'>'+s+'</option>').join('')
-    + '</select>'
-    + '</div>'
-    + '<div class="filters-right">'
-    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/opponents\'">Opponents</button>'
-    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/locations\'">Locations</button>'
-    + '</div>'
-    + '</div>'
-    + '<div class="match-list">'
-    + (list.length ? list.map(m=>matchRow(m,'all')).join('') : '<div class="empty">No matches match these filters.</div>')
+  const selectorOptions = '<option value=""'+(key?'':' selected')+'>All Matches</option>'
+    + seasonOrder.slice().reverse().map(k=>'<option value="'+k+'"'+(k===key?' selected':'')+'>'+k.split('-')[1]+' '+k.split('-')[0]+'</option>').join('');
+  const oppHref = key ? ('#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/opponents') : ('#/team/'+encodeURIComponent(team)+'/opponents');
+  const locHref = key ? ('#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/locations') : ('#/team/'+encodeURIComponent(team)+'/locations');
+  const row1 = '<div class="matches-top-row">'
+    + '<select onchange="location.hash = this.value ? (\'#/team/'+encodeURIComponent(team)+'/season/\'+encodeURIComponent(this.value)) : \'#/team/'+encodeURIComponent(team)+'/matches\'">'+selectorOptions+'</select>'
+    + '<button class="link-btn" onclick="location.hash=\''+oppHref+'\'">Opponents</button>'
+    + '<button class="link-btn" onclick="location.hash=\''+locHref+'\'">Locations</button>'
     + '</div>';
-}
 
-function setFilter(key, val){
-  const parsed = parseHash(location.hash);
-  const params = new URLSearchParams(parsed ? parsed.query : '');
-  if(val) params.set(key, val); else params.delete(key);
-  const qs = params.toString();
-  location.hash = '#/team/'+encodeURIComponent(activeTeam)+'/matches' + (qs ? '?'+qs : '');
+  let infoCard;
+  if(key){
+    const [year, season] = key.split('-');
+    const leagues = [];
+    list.forEach(m=>{ if(m.league && !leagues.includes(m.league)) leagues.push(m.league); });
+    const divisions = [];
+    list.forEach(m=>{ if(m.division && !divisions.includes(m.division)) divisions.push(m.division); });
+    let division = divisions.join(' \u2192 ');
+    if(leagues.length) division = division ? (leagues.join(' \u2192 ')+' \u00b7 '+division) : leagues.join(' \u2192 ');
+    const hasUpcoming = list.some(isUpcoming);
+    const place = !hasUpcoming ? inferPlace(list) : null;
+    if(place) division = division ? (division+' - '+place) : place;
+    const overallRecord = recordStr(list);
+    const regularRecord = recordStr(list.filter(m=>m.type==='Regular'));
+    const coreMembers = uniqueNames(list, 'lineup');
+    const subs = uniqueNames(list, 'subs');
+    infoCard = '<div class="season-info-card">'
+      + '<div class="season-header"><h2>'+season+' '+year+'</h2>'
+      + (division ? '<div class="sub">'+division+'</div>' : '')
+      + '</div>'
+      + '<div class="record">Overall Record: <b>'+overallRecord+'</b></div>'
+      + '<div class="record">Regular Season Record: <b>'+regularRecord+'</b></div>'
+      + (coreMembers.length ? '<div class="section-title">Core Members</div><div class="roster"><div>'+coreMembers.join(', ')+'</div></div>' : '')
+      + (subs.length ? '<div class="section-title">Subs</div><div class="roster"><div class="subs">'+subs.join(', ')+'</div></div>' : '')
+      + '</div>';
+  } else {
+    const overallRecord = recordStr(list);
+    infoCard = '<div class="season-info-card">'
+      + '<div class="season-header"><h2>All Matches</h2></div>'
+      + '<div class="record">'+list.length+' matches across '+seasonOrder.length+' seasons</div>'
+      + '<div class="record">All-time Record: <b>'+overallRecord+'</b></div>'
+      + '</div>';
+  }
+
+  const statsDisabled = !key;
+  const row3 = '<div class="season-tab-toggle">'
+    + '<button class="season-tab-btn active" id="season-tab-btn-matches" onclick="showSeasonTab(\'matches\')">Matches</button>'
+    + '<button class="season-tab-btn'+(statsDisabled?' disabled':'')+'" id="season-tab-btn-stats"'+(statsDisabled?' disabled':' onclick="showSeasonTab(\'stats\')"')+'>Stats</button>'
+    + '</div>';
+
+  const orderedList = key ? list : list.slice().reverse();
+  const matchListHtml = orderedList.length
+    ? orderedList.map(m=>matchRow(m, key||'all')).join('')
+    : '<div class="empty">No matches'+(key?' in this season.':' yet.')+'</div>';
+
+  app.innerHTML = row1 + infoCard + row3
+    + '<div id="season-tab-matches"><div class="match-list">'+matchListHtml+'</div></div>'
+    + (key ? ('<div id="season-tab-stats" style="display:none">'+statsTabHtml(list, team)+'</div>') : '');
 }
 
 function recordStr(list){
@@ -492,13 +509,16 @@ function seasonStatsRows(list, side){
 }
 
 function statsChartSvg(rows){
-  const w=680, h=185, padL=8, padR=8, padT=10, padB=26;
+  const w=680, h=185, padL=8, padR=8, padT=18, padB=26;
   const prodVals = rows.map(r=>r.prod);
   const errVals = rows.map(r=>r.err);
   const allVals = prodVals.concat(errVals).filter(v=>v!=null);
   if(!allVals.length) return '';
-  const maxV = Math.max(...allVals, 1);
-  const minV = Math.min(0, ...allVals);
+  const rawMax = Math.max(...allVals);
+  const rawMin = Math.min(...allVals);
+  const pad = Math.max((rawMax-rawMin)*0.15, 0.5);
+  const maxV = rawMax + pad;
+  const minV = rawMin - pad;
   const n = rows.length;
   const xStep = n>1 ? (w-padL-padR)/(n-1) : 0;
   const x = i => padL + i*xStep;
@@ -506,9 +526,11 @@ function statsChartSvg(rows){
   const path = vals => vals.map((v,i)=>(i===0?'M':'L')+x(i)+','+y(v==null?0:v)).join(' ');
   const dots = (vals,color) => vals.map((v,i)=>v==null?'':'<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="'+color+'"></circle>').join('');
   const labels = rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-8)+'" font-size="9" fill="var(--text3)" text-anchor="middle">Wk'+(r.match.week||'')+'</text>').join('');
+  const axisLabels = '<text x="2" y="'+(padT+3)+'" font-size="9" fill="var(--text3)" text-anchor="start">'+maxV.toFixed(1)+'</text>'
+    + '<text x="2" y="'+(h-padB-2)+'" font-size="9" fill="var(--text3)" text-anchor="start">'+minV.toFixed(1)+'</text>';
   return '<div class="stats-chart-wrap">'
     + '<svg viewBox="0 0 '+w+' '+h+'" class="stats-chart" preserveAspectRatio="none">'
-    + '<line x1="'+padL+'" y1="'+y(0)+'" x2="'+(w-padR)+'" y2="'+y(0)+'" stroke="var(--border2)" stroke-width="1"/>'
+    + axisLabels
     + '<path d="'+path(prodVals)+'" fill="none" stroke="#378ADD" stroke-width="2"/>'
     + dots(prodVals,'#378ADD')
     + '<path d="'+path(errVals)+'" fill="none" stroke="#E24B4A" stroke-width="2"/>'
@@ -677,63 +699,6 @@ function renderLocationDetail(app, team, skey, slug){
     + '</div>';
 }
 
-function renderSeason(app, team, key){
-  const [year, season] = key.split('-');
-  const list = teamMatches(team).filter(m=>m.year===year && m.season===season);
-  const leagues = [];
-  list.forEach(m=>{ if(m.league && !leagues.includes(m.league)) leagues.push(m.league); });
-  const divisions = [];
-  list.forEach(m=>{ if(m.division && !divisions.includes(m.division)) divisions.push(m.division); });
-  let division = divisions.join(' \u2192 ');
-  if(leagues.length) division = division ? (leagues.join(' \u2192 ')+' \u00b7 '+division) : leagues.join(' \u2192 ');
-
-  const hasUpcoming = list.some(isUpcoming);
-  const place = !hasUpcoming ? inferPlace(list) : null;
-  if(place) division = division ? (division+' - '+place) : place;
-
-  const overallRecord = recordStr(list);
-  const regularRecord = recordStr(list.filter(m=>m.type==='Regular'));
-
-  const coreMembers = uniqueNames(list, 'lineup');
-  const subs = uniqueNames(list, 'subs');
-
-  const seasonOrder = seasonOrderFor(team);
-
-  app.innerHTML = ''
-    + '<div class="season-info-card">'
-    + '<div class="season-header">'
-    + '<div class="title-row"><h2>'+season+' '+year+'</h2>'
-    + '<div class="season-select-col">'
-    + '<select onchange="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/\'+encodeURIComponent(this.value)">'
-      + seasonOrder.slice().reverse().map(k=>'<option value="'+k+'"'+(k===key?' selected':'')+'>'+k.split('-')[1]+' '+k.split('-')[0]+'</option>').join('')
-    + '</select>'
-    + '<div class="season-links-row">'
-    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/opponents\'">Opponents</button>'
-    + '<button class="link-btn" onclick="location.hash=\'#/team/'+encodeURIComponent(team)+'/season/'+encodeURIComponent(key)+'/locations\'">Locations</button>'
-    + '</div>'
-    + '</div>'
-    + '</div>'
-    + (division ? '<div class="sub">'+division+'</div>' : '')
-    + '</div>'
-    + '<div class="record">Overall Record: <b>'+overallRecord+'</b></div>'
-    + '<div class="record">Regular Season Record: <b>'+regularRecord+'</b></div>'
-    + (coreMembers.length ? '<div class="section-title">Core Members</div><div class="roster"><div>'+coreMembers.join(', ')+'</div></div>' : '')
-    + (subs.length ? '<div class="section-title">Subs</div><div class="roster"><div class="subs">'+subs.join(', ')+'</div></div>' : '')
-    + '</div>'
-    + '<div class="season-tab-toggle">'
-    + '<button class="season-tab-btn active" id="season-tab-btn-matches" onclick="showSeasonTab(\'matches\')">Matches</button>'
-    + '<button class="season-tab-btn" id="season-tab-btn-stats" onclick="showSeasonTab(\'stats\')">Stats</button>'
-    + '</div>'
-    + '<div id="season-tab-matches">'
-    + '<div class="match-list">'
-    + (list.length ? list.map(m=>matchRow(m,key)).join('') : '<div class="empty">No matches in this season.</div>')
-    + '</div>'
-    + '</div>'
-    + '<div id="season-tab-stats" style="display:none">'
-    + statsTabHtml(list, team)
-    + '</div>';
-}
-
 function showSeasonTab(tab){
   document.getElementById('season-tab-matches').style.display = tab==='matches' ? '' : 'none';
   document.getElementById('season-tab-stats').style.display = tab==='stats' ? '' : 'none';
@@ -749,44 +714,58 @@ function boxScoreHtml(m){
   const usWonCount = m.setScores.filter(s=>s[0]>s[1]).length;
   const themWonCount = m.setScores.filter(s=>s[1]>s[0]).length;
   const usIsWinner = usWonCount > themWonCount;
+  const setLines = m.ksvImport ? m.ksvImport.split('\n') : [];
+
+  function colAttrs(which, tappable){
+    if(!tappable) return '';
+    const active = which==='final';
+    return ' class="bs-col bs-col-'+which+(active?' bs-col-active':'')+'" onclick="selectStatsView(\''+m.team+'\',\''+m.id+'\',\''+which+'\')"';
+  }
 
   const header = '<tr><th class="team-col"></th>'
-    + Array.from({length:numCols},(_,i)=>'<th>'+(i+1)+'</th>').join('')
-    + '<th class="final-col">Final</th></tr>';
+    + Array.from({length:numCols},(_,i)=>{
+        const tappable = !!(m.setScores[i] && setLines[i]);
+        return '<th'+colAttrs(i, tappable)+(tappable?' style="cursor:pointer"':'')+'>'+(i+1)+'</th>';
+      }).join('')
+    + '<th class="final-col"'+colAttrs('final', !!m.stats)+(m.stats?' style="cursor:pointer"':'')+'>Final</th></tr>';
 
-  function cell(val, won){
+  function cell(val, won, which, tappable){
     if(val==null) return '<td class="set-empty">\u2013</td>';
-    return '<td'+(won?' class="set-won"':'')+'>'+val+'</td>';
+    return '<td'+(won?' class="set-won"':'')+colAttrs(which, tappable)+(tappable?' style="cursor:pointer"':'')+'>'+val+'</td>';
   }
 
   const usCells = Array.from({length:numCols},(_,i)=>{
     const s = m.setScores[i];
-    return s ? cell(s[0], s[0]>s[1]) : cell(null);
+    const tappable = !!(s && setLines[i]);
+    return s ? cell(s[0], s[0]>s[1], i, tappable) : cell(null);
   }).join('');
   const themCells = Array.from({length:numCols},(_,i)=>{
     const s = m.setScores[i];
-    return s ? cell(s[1], s[1]>s[0]) : cell(null);
+    const tappable = !!(s && setLines[i]);
+    return s ? cell(s[1], s[1]>s[0], i, tappable) : cell(null);
   }).join('');
 
-  const usRow = '<tr'+(usIsWinner?' class="winner"':'')+'><td class="team-name">'+m.teamName+'</td>'+usCells+'<td class="final-col">'+usWonCount+'</td></tr>';
-  const themRow = '<tr'+(!usIsWinner?' class="winner"':'')+'><td class="team-name">'+(m.opponent||'Opponent')+'</td>'+themCells+'<td class="final-col">'+themWonCount+'</td></tr>';
+  const finalTappable = !!m.stats;
+  const usRow = '<tr'+(usIsWinner?' class="winner"':'')+'><td class="team-name">'+m.teamName+'</td>'+usCells+'<td class="final-col"'+colAttrs('final', finalTappable)+(finalTappable?' style="cursor:pointer"':'')+'>'+usWonCount+'</td></tr>';
+  const themRow = '<tr'+(!usIsWinner?' class="winner"':'')+'><td class="team-name">'+(m.opponent||'Opponent')+'</td>'+themCells+'<td class="final-col"'+colAttrs('final', finalTappable)+(finalTappable?' style="cursor:pointer"':'')+'>'+themWonCount+'</td></tr>';
 
   return '<table class="box-score"><thead>'+header+'</thead><tbody>'+usRow+themRow+'</tbody></table>';
 }
 
-function ksvTrackerLink(m){
-  if(!m.ksvImport || !KSV_TRACKER_URL) return '';
-  const url = KSV_TRACKER_URL + '#/import?my=' + encodeURIComponent(m.teamName)
-    + '&opp=' + encodeURIComponent(m.opponent || 'Opponent')
-    + '&data=' + encodeURIComponent(m.ksvImport);
-  return '<a class="ksv-link" href="'+url+'" target="_blank" rel="noopener">Full Stats \u2197</a>';
+function parseSetStats(line){
+  const c = line.split('\t');
+  const int = v => { const n = parseInt(v,10); return isNaN(n) ? 0 : n; };
+  const myBreakdown = int(c[8])+int(c[9])+int(c[10])+int(c[11])+int(c[12]);
+  const oppBreakdown = int(c[20])+int(c[21])+int(c[22])+int(c[23])+int(c[24]);
+  return {
+    points: int(c[2]), attacks: int(c[4]), blocks: int(c[5]), serves: int(c[6]),
+    oppErrors: myBreakdown !== 0 ? myBreakdown : int(c[7]),
+    oppPoints: int(c[14]), oppAttacks: int(c[16]), oppBlocks: int(c[17]), oppServes: int(c[18]),
+    ourErrors: oppBreakdown !== 0 ? oppBreakdown : int(c[19])
+  };
 }
 
-function statsHtml(m){
-  if(!m.stats){
-    return '<div class="section-title">Match stats</div><div class="empty-note">Stats not available</div>';
-  }
-  const s = m.stats;
+function butterflyChartHtml(s, mineLabel, theirsLabel){
   const cats = [
     {label:'Attack (kill)', mine: s.attacks, theirs: s.oppAttacks, color:'#378ADD'},
     {label:'Block', mine: s.blocks, theirs: s.oppBlocks, color:'#E8C319'},
@@ -796,9 +775,9 @@ function statsHtml(m){
   const maxVal = Math.max(1, ...cats.flatMap(c=>[c.mine||0, c.theirs||0]));
 
   const header = '<div class="err-bf-header">'
-    + '<div class="err-bf-head-left">'+m.teamName+'</div>'
+    + '<div class="err-bf-head-left">'+mineLabel+'</div>'
     + '<div class="err-bf-head-center"></div>'
-    + '<div class="err-bf-head-right">'+(m.opponent||'Opponent')+'</div>'
+    + '<div class="err-bf-head-right">'+theirsLabel+'</div>'
     + '</div>';
 
   const rows = cats.map(c=>{
@@ -819,8 +798,38 @@ function statsHtml(m){
     + '<div class="err-bf-bar-right"><span class="err-bf-val" style="color:var(--text)">'+(s.oppPoints!=null?s.oppPoints:'\u2013')+'</span></div>'
     + '</div>';
 
-  return '<div class="section-title">Match stats</div>'
-    + '<div class="err-butterfly">' + header + rows + totalRow + '</div>'
+  return '<div class="err-butterfly">' + header + rows + totalRow + '</div>';
+}
+
+function selectStatsView(team, id, which){
+  const m = MATCHES.find(x=>x.team===team && x.id===id);
+  if(!m) return;
+  const body = document.getElementById('point-breakdown-body');
+  if(!body) return;
+  let s;
+  if(which==='final'){
+    s = m.stats;
+  } else {
+    const lines = m.ksvImport.split('\n');
+    s = parseSetStats(lines[parseInt(which,10)]);
+  }
+  body.innerHTML = s ? butterflyChartHtml(s, m.teamName, m.opponent||'Opponent') : '<div class="empty-note">Stats not available</div>';
+  document.querySelectorAll('.bs-col').forEach(el=>el.classList.remove('bs-col-active'));
+  document.querySelectorAll('.bs-col-'+which).forEach(el=>el.classList.add('bs-col-active'));
+}
+
+function ksvTrackerLink(m){
+  if(!m.ksvImport || !KSV_TRACKER_URL) return '';
+  const url = KSV_TRACKER_URL + '#/import?my=' + encodeURIComponent(m.teamName)
+    + '&opp=' + encodeURIComponent(m.opponent || 'Opponent')
+    + '&data=' + encodeURIComponent(m.ksvImport);
+  return '<a class="ksv-link" href="'+url+'" target="_blank" rel="noopener">Full Stats \u2197</a>';
+}
+
+function statsHtml(m){
+  const body = m.stats ? butterflyChartHtml(m.stats, m.teamName, m.opponent||'Opponent') : '<div class="empty-note">Stats not available</div>';
+  return '<div class="section-title">Point Breakdown</div>'
+    + '<div id="point-breakdown-body">' + body + '</div>'
     + ksvTrackerLink(m);
 }
 
