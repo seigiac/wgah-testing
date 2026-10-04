@@ -152,6 +152,7 @@ MATCHES.forEach(m=>{
 });
 const defaultTeam = teamsList[0].slug;
 let activeTeam = defaultTeam;
+const SEASON_HIGHLIGHTS = {"wgah": {"2017-Fall": "https://youtu.be/DPV4foyJHDk", "2018-Winter": "https://youtu.be/7nR5RwX2nI8", "2018-Summer": "https://youtu.be/lF9NIC2r-ew", "2018-Fall": "https://youtu.be/V80Q03m0Jmc", "2019-Winter": "https://youtu.be/YtujUPo--hg", "2023-Winter": "https://youtu.be/UGRrLIowiO0", "2023-Spring": "https://youtu.be/z9j9LekwMqM", "2023-Fall": "https://youtu.be/g_w7mZ_vEOw", "2024-Winter": "https://youtu.be/oKGqYH_pg_s", "2024-Spring": "https://youtu.be/YTb87eClBH4", "2024-Fall": "https://youtu.be/YfTsRMmCZ-Q", "2025-Winter": "https://youtu.be/CLnQq9dsKyA", "2025-Spring": "https://youtu.be/XjNrtjTb1Js", "2025-Fall": "https://youtu.be/Q-hvNRGKVp4", "2026-Winter": "https://youtu.be/Jcnn9DRXiuQ", "2026-Spring": "https://youtu.be/6o9awysKLrQ"}, "back-at-it": {}};
 
 function parseDate(d){
   if(!d) return null;
@@ -359,6 +360,31 @@ function goTeam(slug){
   }
 }
 
+function computeSeasonInfo(team, key){
+  const [year, season] = key.split('-');
+  const list = teamMatches(team).filter(m=>seasonKey(m)===key);
+  const leagues = [];
+  list.forEach(m=>{ if(m.league && !leagues.includes(m.league)) leagues.push(m.league); });
+  const divisions = [];
+  list.forEach(m=>{ if(m.division && !divisions.includes(m.division)) divisions.push(m.division); });
+  let divisionLine = divisions.join(' \u2192 ');
+  if(leagues.length) divisionLine = divisionLine ? (leagues.join(' \u2192 ')+' \u00b7 '+divisionLine) : leagues.join(' \u2192 ');
+  const hasUpcoming = list.some(isUpcoming);
+  const place = !hasUpcoming ? inferPlace(list) : null;
+  let divisionWithPlace = divisionLine;
+  if(place) divisionWithPlace = divisionLine ? (divisionLine+' - '+place) : place;
+  return {
+    year, season, list,
+    league: leagues.join(' \u2192 '),
+    division: divisions.join(' \u2192 '),
+    divisionLine, place, divisionWithPlace,
+    overallRecord: recordStr(list),
+    regularRecord: recordStr(list.filter(m=>m.type==='Regular')),
+    coreMembers: uniqueNames(list, 'lineup'),
+    subs: uniqueNames(list, 'subs')
+  };
+}
+
 function renderMatchesPage(app, team, key){
   const list = key ? teamMatches(team).filter(m=>seasonKey(m)===key) : teamMatches(team);
   const seasonOrder = seasonOrderFor(team);
@@ -375,28 +401,15 @@ function renderMatchesPage(app, team, key){
 
   let infoCard;
   if(key){
-    const [year, season] = key.split('-');
-    const leagues = [];
-    list.forEach(m=>{ if(m.league && !leagues.includes(m.league)) leagues.push(m.league); });
-    const divisions = [];
-    list.forEach(m=>{ if(m.division && !divisions.includes(m.division)) divisions.push(m.division); });
-    let division = divisions.join(' \u2192 ');
-    if(leagues.length) division = division ? (leagues.join(' \u2192 ')+' \u00b7 '+division) : leagues.join(' \u2192 ');
-    const hasUpcoming = list.some(isUpcoming);
-    const place = !hasUpcoming ? inferPlace(list) : null;
-    if(place) division = division ? (division+' - '+place) : place;
-    const overallRecord = recordStr(list);
-    const regularRecord = recordStr(list.filter(m=>m.type==='Regular'));
-    const coreMembers = uniqueNames(list, 'lineup');
-    const subs = uniqueNames(list, 'subs');
+    const info = computeSeasonInfo(team, key);
     infoCard = '<div class="season-info-card">'
-      + '<div class="season-header"><h2>'+season+' '+year+'</h2>'
-      + (division ? '<div class="sub">'+division+'</div>' : '')
+      + '<div class="season-header"><h2>'+info.season+' '+info.year+'</h2>'
+      + (info.divisionWithPlace ? '<div class="sub">'+info.divisionWithPlace+'</div>' : '')
       + '</div>'
-      + '<div class="record">Overall Record: <b>'+overallRecord+'</b></div>'
-      + '<div class="record">Regular Season Record: <b>'+regularRecord+'</b></div>'
-      + (coreMembers.length ? '<div class="section-title">Core Members</div><div class="roster"><div>'+coreMembers.join(', ')+'</div></div>' : '')
-      + (subs.length ? '<div class="section-title">Subs</div><div class="roster"><div class="subs">'+subs.join(', ')+'</div></div>' : '')
+      + '<div class="record">Overall Record: <b>'+info.overallRecord+'</b></div>'
+      + '<div class="record">Regular Season Record: <b>'+info.regularRecord+'</b></div>'
+      + (info.coreMembers.length ? '<div class="section-title">Core Members</div><div class="roster"><div>'+info.coreMembers.join(', ')+'</div></div>' : '')
+      + (info.subs.length ? '<div class="section-title">Subs</div><div class="roster"><div class="subs">'+info.subs.join(', ')+'</div></div>' : '')
       + '</div>';
   } else {
     const overallRecord = recordStr(list);
@@ -408,9 +421,12 @@ function renderMatchesPage(app, team, key){
   }
 
   const statsDisabled = !key;
+  const highlightsUrl = key ? (SEASON_HIGHLIGHTS[team] || {})[key] : null;
+  const highlightsDisabled = !highlightsUrl;
   const row3 = '<div class="season-tab-toggle">'
     + '<button class="season-tab-btn active" id="season-tab-btn-matches" onclick="showSeasonTab(\'matches\')">Matches</button>'
     + '<button class="season-tab-btn'+(statsDisabled?' disabled':'')+'" id="season-tab-btn-stats"'+(statsDisabled?' disabled':' onclick="showSeasonTab(\'stats\')"')+'>Stats</button>'
+    + '<button class="season-tab-btn'+(highlightsDisabled?' disabled':'')+'" id="season-tab-btn-highlights"'+(highlightsDisabled?' disabled':' onclick="showSeasonTab(\'highlights\')"')+'>Highlights</button>'
     + '</div>';
 
   const orderedList = key ? list : list.slice().reverse();
@@ -418,9 +434,13 @@ function renderMatchesPage(app, team, key){
     ? orderedList.map(m=>matchRow(m, key||'all')).join('')
     : '<div class="empty">No matches'+(key?' in this season.':' yet.')+'</div>';
 
+  const highlightsEmbed = highlightsUrl ? ytEmbed(highlightsUrl) : null;
+  const highlightsHtml = highlightsEmbed ? '<div class="video-wrap"><iframe src="'+highlightsEmbed+'" allowfullscreen></iframe></div>' : '';
+
   app.innerHTML = row1 + infoCard + row3
     + '<div id="season-tab-matches"><div class="match-list">'+matchListHtml+'</div></div>'
-    + (key ? ('<div id="season-tab-stats" style="display:none">'+statsTabHtml(list, team)+'</div>') : '');
+    + (key ? ('<div id="season-tab-stats" style="display:none">'+statsTabHtml(list, team)+'</div>') : '')
+    + (highlightsUrl ? ('<div id="season-tab-highlights" style="display:none">'+highlightsHtml+'</div>') : '');
 }
 
 function recordStr(list){
@@ -700,10 +720,12 @@ function renderLocationDetail(app, team, skey, slug){
 }
 
 function showSeasonTab(tab){
-  document.getElementById('season-tab-matches').style.display = tab==='matches' ? '' : 'none';
-  document.getElementById('season-tab-stats').style.display = tab==='stats' ? '' : 'none';
-  document.getElementById('season-tab-btn-matches').classList.toggle('active', tab==='matches');
-  document.getElementById('season-tab-btn-stats').classList.toggle('active', tab==='stats');
+  ['matches','stats','highlights'].forEach(t=>{
+    const panel = document.getElementById('season-tab-'+t);
+    if(panel) panel.style.display = (tab===t) ? '' : 'none';
+    const btn = document.getElementById('season-tab-btn-'+t);
+    if(btn) btn.classList.toggle('active', tab===t);
+  });
 }
 
 function boxScoreHtml(m){
