@@ -444,12 +444,11 @@ function renderMatchesPage(app, team, key){
     : '<div class="empty">No matches'+(key?' in this season.':' yet.')+'</div>';
 
   const highlightsEmbed = highlightsUrl ? ytEmbed(highlightsUrl) : null;
-  const highlightsHtml = highlightsEmbed ? '<div class="video-wrap"><iframe src="'+highlightsEmbed+'" allowfullscreen></iframe></div>' : '';
 
   app.innerHTML = row1 + infoCard + row3
     + '<div id="season-tab-matches"><div class="match-list">'+matchListHtml+'</div></div>'
     + (key ? ('<div id="season-tab-stats" style="display:none">'+statsTabHtml(list, team)+'</div>') : '')
-    + (highlightsUrl ? ('<div id="season-tab-highlights" style="display:none">'+highlightsHtml+'</div>') : '');
+    + (highlightsEmbed ? ('<div id="season-tab-highlights" data-src="'+highlightsEmbed+'" style="display:none"></div>') : '');
 }
 
 function recordStr(list){
@@ -763,6 +762,10 @@ function showSeasonTab(tab){
     const btn = document.getElementById('season-tab-btn-'+t);
     if(btn) btn.classList.toggle('active', tab===t);
   });
+  const hlPanel = document.getElementById('season-tab-highlights');
+  if(tab==='highlights' && hlPanel && !hlPanel.querySelector('iframe')){
+    hlPanel.innerHTML = '<div class="video-wrap"><iframe src="'+hlPanel.dataset.src+'" allowfullscreen></iframe></div>';
+  }
 }
 
 function boxScoreHtml(m){
