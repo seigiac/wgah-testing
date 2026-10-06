@@ -14,8 +14,8 @@
 --fs-eyebrow:11px;--ls-eyebrow:.07em;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);background:var(--bg);min-height:100vh;padding-bottom:40px}
-.app{padding:40px;max-width:680px;margin:0 auto}
+body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);background:var(--bg);min-height:100vh;padding-bottom:40px;overflow-x:hidden}
+.app{padding:16px;max-width:680px;margin:0 auto;overflow-x:hidden}
 .hidden{display:none!important}
 
 /* Setup */
@@ -32,7 +32,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .pick-opp:active{background:#4a1a0a}
 
 /* Scoreboard */
-.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:40px}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:16px}
 .score-side{background:var(--bg2);border-radius:var(--radius-lg);padding:10px 12px;text-align:center}
 .score-side .team-name{font-size:var(--fs-body-xs);color:var(--text2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .score-side .score-num{font-size:var(--fs-h1);font-weight:500;line-height:1}
@@ -77,7 +77,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 /* Advanced stats */
 .adv-section{margin-bottom:40px}
 .adv-section-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:6px}
-.adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0;overflow:hidden}
 .adv-col-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding:4px 0 6px;border-bottom:1.5px solid #378ADD;margin-bottom:8px;color:#7EB8FF}
 .adv-col-label.opp{border-color:#D85A30;color:#FF9A7E}
 .adv-stat{margin-bottom:8px}
@@ -92,8 +92,8 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .vis-main-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:8px;margin-top:4px}
 .vis-sub-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin-bottom:7px}
 .vis-divider{border:none;border-top:0.5px solid var(--border2);margin:40px 0}
-.comp-vis-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.vis-comp-err-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.comp-vis-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0;overflow:hidden}
+.vis-comp-err-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;min-width:0;overflow:hidden}
 .comp-col-head{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding-bottom:5px;margin-bottom:7px}
 .comp-col-head.my{border-bottom:1.5px solid #378ADD;color:#7EB8FF}
 .comp-col-head.opp{border-bottom:1.5px solid #D85A30;color:#FF9A7E}
@@ -108,7 +108,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .run-tl-label{font-size:var(--fs-body-s);font-weight:500;margin-bottom:5px}
 .run-tl-label.my{color:#7EB8FF}
 .run-tl-label.opp{color:#FF9A7E}
-.run-tl-grid{display:flex;flex-wrap:wrap;gap:3px}
+.run-tl-grid{display:flex;flex-wrap:wrap;gap:3px;overflow:hidden}
 .rtl-cell{width:20px;height:20px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;line-height:1}
 .rtl-cell.pt-my{background:#378ADD;color:#fff}
 .rtl-cell.pt-opp{background:#D85A30;color:#fff}
@@ -136,7 +136,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .donut2-leg-lbl{flex:1;color:var(--text2);font-size:var(--fs-body-xs)}
 .donut2-leg-val{font-weight:500;color:var(--text);font-size:var(--fs-body-xs)}
 /* Error breakdown butterfly chart */
-.err-butterfly{width:100%}
+.err-butterfly{width:100%;min-width:0;overflow:hidden}
 .err-bf-header{display:grid;grid-template-columns:1fr 90px 1fr;gap:4px;margin-bottom:4px}
 .err-bf-head-left{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:#7EB8FF;text-align:right}
 .err-bf-head-center{font-size:var(--fs-eyebrow);color:var(--text3);text-align:center}
@@ -177,10 +177,14 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 
 /* ── Viewer ── */
 .viewer-back{display:flex;align-items:center;gap:4px;font-size:var(--fs-body-m);color:#7EB8FF;cursor:pointer;background:none;border:none;padding:0;margin-bottom:12px;font-family:var(--font)}
-#viewer-body{display:grid;grid-template-columns:1fr;gap:24px}
+#viewer-body{display:grid;grid-template-columns:1fr;gap:24px;min-width:0}
+#viewer-left,#viewer-right,#viewer-vis-col{min-width:0;overflow:hidden}
+.viewer-cols>div,.viewer-adv-cols>div{min-width:0}
+.vis-comp-err-grid>div,.comp-vis-cols>div{min-width:0}
+.adv-cols>div{min-width:0}
 .viewer-title{font-size:var(--fs-h2);font-weight:500;margin-bottom:2px}
 .viewer-score-line{font-size:var(--fs-body-m);color:var(--text2);margin-bottom:14px;text-align:center}
-.viewer-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.viewer-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;min-width:0;overflow:hidden}
 .viewer-col-label{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);padding:4px 0 6px;margin-bottom:6px}
 .viewer-col-label.my{border-bottom:1.5px solid #378ADD;color:#7EB8FF}
 .viewer-col-label.opp{border-bottom:1.5px solid #D85A30;color:#FF9A7E}
@@ -195,7 +199,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .viewer-row.vr-collapsible .vr-name::after{content:' ›';font-size:12px;color:var(--text3);transition:transform .2s}
 .viewer-row.vr-collapsible.expanded .vr-name::after{content:' ⌄'}
 .viewer-section-title{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);margin:12px 0 6px}
-.viewer-adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.viewer-adv-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;min-width:0;overflow:hidden}
 .viewer-adv-col{}
 .viewer-adv-stat{margin-bottom:8px}
 .viewer-adv-label{font-size:var(--fs-body-xs);color:var(--text2);margin-bottom:1px}
@@ -233,6 +237,10 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .bt-adv-val.pct-opp{color:#FF9A7E}
 /* Centered STATS section title spanning both columns */
 .stats-section-title{font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text2);text-align:center;margin-bottom:16px}
+/* Compact scoreboard inside sticky headers on mobile */
+.scoreboard-compact .score-num{font-size:28px!important}
+.scoreboard-compact .score-side{padding:6px 10px}
+.scoreboard-compact .scoreboard{margin-bottom:8px}
 /* ── Presentation screen ── */
 #screen-present{
   position:fixed;inset:0;z-index:500;
@@ -284,12 +292,14 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 #pres-mom-wrap{position:relative;width:100%}
 #pres-momentum{display:block;width:100%}
 /* ── end presentation ── */
-#tracker-sticky-header{position:sticky;top:0;z-index:100;background:var(--bg);padding:20px 0 12px;margin-bottom:40px;border-bottom:0.5px solid var(--border2)}
+#tracker-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:12px 16px 10px;border-bottom:0.5px solid var(--border2)}
+#tracker-body{padding-top:0} /* JS sets margin-top after measuring header */
 /* Viewer sticky header */
 .nav-arrow{background:var(--bg2);border:0.5px solid var(--border);color:var(--text2);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-family:var(--font);flex-shrink:0;transition:opacity .15s}
 .nav-arrow:hover{color:var(--text);border-color:var(--text2)}
 .nav-arrow:disabled{opacity:0.25;cursor:default;pointer-events:none}
-#viewer-sticky-header{position:sticky;top:0;z-index:100;background:var(--bg);padding:20px 0 12px;margin-bottom:40px;border-bottom:0.5px solid var(--border2)}
+#viewer-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:10px 16px 10px;border-bottom:0.5px solid var(--border2)}
+#viewer-body{padding-top:0} /* JS sets margin-top after measuring header */
 @media(min-width:900px){
   :root{
     --fs-h1:56px;--fs-h2:32px;--fs-h3:24px;
@@ -297,7 +307,12 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
     --fs-eyebrow:16px;--ls-eyebrow:1px;
   }
   body{padding-bottom:0}
-  .app{max-width:1400px;padding:40px}
+  .app{max-width:1400px;padding:40px;overflow-x:visible}
+  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
+  #viewer-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
+  .scoreboard-compact .score-num{font-size:var(--fs-h1)!important}
+  .scoreboard-compact .score-side{padding:10px 12px}
+  .scoreboard{margin-bottom:40px}
   /* Landing page: extra space before "Who serves first?" */
   #inp-opp{margin-bottom:24px}
   #screen-setup{max-width:420px;margin:60px auto}
@@ -358,7 +373,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 <!-- ══════════════ Tracker ══════════════ -->
 <div id="screen-tracker" class="hidden">
   <div id="tracker-sticky-header">
-    <div class="scoreboard">
+    <div class="scoreboard scoreboard-compact">
       <div class="score-side" id="my-score-side">
         <div class="team-name" id="lbl-my">My Team</div>
         <div class="score-num" id="sc-my">0</div>
@@ -373,13 +388,11 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
         <div class="run-indicator" id="run-opp"></div>
       </div>
     </div>
-    <div class="hint">Tap the scoring team's column &nbsp;·&nbsp; Hold 600ms to remove</div>
   </div>
 
   <div id="tracker-body">
 
   <!-- Centered STATS title spanning both columns -->
-  <div class="stats-section-title">Stats</div>
 
   <!-- Row 1: Stat buttons (left) + Advanced stats butterfly (right) -->
   <div id="tracker-row1">
@@ -530,7 +543,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
     <div class="viewer-score-line" id="viewer-score-line"></div>
 
     <!-- Scoreboard (read-only) -->
-    <div class="scoreboard">
+    <div class="scoreboard scoreboard-compact">
       <div class="score-side" id="viewer-score-my-side">
         <div class="team-name" id="viewer-name-my">My Team</div>
         <div class="score-num" id="viewer-sc-my">0</div>
@@ -682,7 +695,17 @@ var visMomChart=null;
 
 function show(id){document.getElementById(id).classList.remove('hidden');}
 function hide(id){document.getElementById(id).classList.add('hidden');}
-function showScreen(name){['screen-setup','screen-tracker','screen-viewer'].forEach(function(s){hide(s);});show('screen-'+name);window.scrollTo(0,0);}
+function adjustFixedHeaderOffset(){
+  // On mobile (no 900px media query), headers are position:fixed — offset body content
+  if(window.innerWidth>=900)return;
+  var th=document.getElementById('tracker-sticky-header');
+  var vh=document.getElementById('viewer-sticky-header');
+  var tb=document.getElementById('tracker-body');
+  var vb=document.getElementById('viewer-body');
+  if(th&&tb)tb.style.marginTop=(th.offsetHeight+16)+'px';
+  if(vh&&vb)vb.style.marginTop=(vh.offsetHeight+16)+'px';
+}
+function showScreen(name){['screen-setup','screen-tracker','screen-viewer'].forEach(function(s){hide(s);});show('screen-'+name);window.scrollTo(0,0);setTimeout(adjustFixedHeaderOffset,0);}
 
 function updateServeButtons(){
   var myVal=document.getElementById('inp-my').value.trim();
@@ -925,36 +948,13 @@ function renderVisRunTimeline(myRuns,oppRuns,el,myName,oppName,firstServer,cellS
     var lbl=document.createElement('div');lbl.className='run-tl-label '+(isOpp?'opp':'my');
     lbl.textContent=teamName;d.appendChild(lbl);
 
-    // ⚠️ above blank runs (opponent scoring) >= 3
+    // Build sets of run-start indices for inline icon overlays
     var oppKey=teamKey==='my'?'opp':'my';
-    var warnRuns=longRuns(teamKey,oppKey,3);
-    // ⭐️ above scored runs (this team scoring) >= 5
-    var starRuns=longRuns(teamKey,teamKey,5);
-
-    var hasAnnotations=warnRuns.length||starRuns.length;
-    if(hasAnnotations){
-      var annRow=document.createElement('div');
-      annRow.style.cssText='position:relative;height:16px;margin-bottom:2px';
-      warnRuns.forEach(function(r){
-        var leftPx=r.start*(CELL+GAP);
-        var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
-        var ann=document.createElement('div');
-        ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:11px;line-height:16px;top:0';
-        ann.textContent='⚠️';annRow.appendChild(ann);
-      });
-      starRuns.forEach(function(r){
-        var leftPx=r.start*(CELL+GAP);
-        var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
-        var ann=document.createElement('div');
-        ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:11px;line-height:16px;top:0';
-        ann.textContent='⭐️';annRow.appendChild(ann);
-      });
-      d.appendChild(annRow);
-    }
+    var warnStarts={},starStarts={};
+    longRuns(teamKey,oppKey,3).forEach(function(r){warnStarts[r.start]=true;});
+    longRuns(teamKey,teamKey,5).forEach(function(r){starStarts[r.start]=true;});
 
     // Each blank pip on this team's row corresponds to one opponent point while serving.
-    // fsArr has one letter per such point, in chronological order.
-    // Assign each blank pip its own sequential letter from fsArr.
     var fsArr=teamKey==='my'?myFS:oppFS;
     var pipToLetter={};
     if(fsArr.length){
@@ -968,8 +968,22 @@ function renderVisRunTimeline(myRuns,oppRuns,el,myName,oppName,firstServer,cellS
     }
 
     var grid=document.createElement('div');grid.className='run-tl-grid';
+    // Add top padding to grid so overlaid icons don't get clipped
+    var hasAnnotations=Object.keys(warnStarts).length||Object.keys(starStarts).length;
+    if(hasAnnotations)grid.style.paddingTop='16px';
     var markerIdx=teamKey==='my'?myMarker:oppMarker;
     pips.forEach(function(pip,idx){
+      // Wrap cell in relative container so icon can be absolute-positioned above it
+      var icon=warnStarts[idx]?'⚠️':(starStarts[idx]?'⭐️':null);
+      var wrapper;
+      if(icon){
+        wrapper=document.createElement('div');
+        wrapper.style.cssText='position:relative;flex-shrink:0;width:'+CELL+'px';
+        var iconEl=document.createElement('div');
+        iconEl.style.cssText='position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:10px;line-height:14px;white-space:nowrap;pointer-events:none';
+        iconEl.textContent=icon;
+        wrapper.appendChild(iconEl);
+      }
       var cell=document.createElement('div');
       if(pip.scorer===teamKey){
         cell.className='rtl-cell pt-'+teamKey;
@@ -983,7 +997,8 @@ function renderVisRunTimeline(myRuns,oppRuns,el,myName,oppName,firstServer,cellS
         }
       }
       if(idx===markerIdx)cell.classList.add('first-server');
-      grid.appendChild(cell);
+      if(wrapper){wrapper.appendChild(cell);grid.appendChild(wrapper);}
+      else grid.appendChild(cell);
     });
     d.appendChild(grid);return d;
   }
@@ -1289,6 +1304,35 @@ function renderViewerVisualsFullMatch(sets,myName,oppName){
 
 var vCopySet=null; // set being viewed, used by copySetTSV
 
+function copyToClipboard(text,btnId){
+  var btn=btnId?document.getElementById(btnId):null;
+  function onSuccess(){
+    if(!btn)return;
+    var orig=btn.textContent;
+    btn.textContent='Copied!';btn.style.color='#7EB8FF';btn.style.borderColor='#378ADD';
+    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
+  }
+  function onFail(){showToast('Copy failed — try long-pressing and copying manually');}
+  // Try modern API first
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(onSuccess).catch(function(){
+      // Fallback to execCommand
+      execCopy(text)?onSuccess():onFail();
+    });
+  } else {
+    execCopy(text)?onSuccess():onFail();
+  }
+}
+function execCopy(text){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    var ok=document.execCommand('copy');
+    document.body.removeChild(ta);return ok;
+  }catch(e){return false;}
+}
+
 function copySetTSV(){
   var s=vCopySet;
   if(!s){showToast('Nothing to copy');return;}
@@ -1303,29 +1347,15 @@ function copySetTSV(){
   var myFS=(s.myFailedSideouts||[]).join(',');
   var oppFS=(s.oppFailedSideouts||[]).join(',');
   var row=[
-    s.firstServer||'',
-    s.setNum,
-    my.total, myEarned,
-    my.attack, my.block, my.serve,
-    myErrTotal,
-    my['atk-net'], my['atk-out'], my['srv-net'], my['srv-out'], my.other,
+    s.firstServer||'',s.setNum,
+    my.total,myEarned,my.attack,my.block,my.serve,
+    myErrTotal,my['atk-net'],my['atk-out'],my['srv-net'],my['srv-out'],my.other,
     myRuns||'',
-    opp.total, oppEarned,
-    opp.attack, opp.block, opp.serve,
-    oppErrTotal,
-    opp['atk-net'], opp['atk-out'], opp['srv-net'], opp['srv-out'], opp.other,
-    oppRuns||'',
-    myFS,
-    oppFS
+    opp.total,oppEarned,opp.attack,opp.block,opp.serve,
+    oppErrTotal,opp['atk-net'],opp['atk-out'],opp['srv-net'],opp['srv-out'],opp.other,
+    oppRuns||'',myFS,oppFS
   ].join(T);
-  navigator.clipboard.writeText(row).then(function(){
-    var btn=document.getElementById('btn-copy-set');
-    var orig=btn.textContent;
-    btn.textContent='Copied!';
-    btn.style.color='#7EB8FF';
-    btn.style.borderColor='#378ADD';
-    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
-  }).catch(function(){showToast('Copy failed — try a different browser');});
+  copyToClipboard(row,'btn-copy-set');
 }
 
 /* ══════════════ openViewer ══════════════ */
@@ -1475,6 +1505,7 @@ function openViewer(idx){
 
   renderViewerVisuals(s);
   showScreen('viewer');
+  setTimeout(adjustFixedHeaderOffset,0);
 }
 
 /* ══════════════ Full Match Viewer ══════════════ */
@@ -1706,47 +1737,28 @@ function renderFullMatchTimeline(sets,el,CELL,GAP){
         });
       }
 
-      // Annotation row (⚠️/⭐️) — show for all rows
+      // Build icon sets for per-cell overlays
       var oppKey=teamKey==='my'?'opp':'my';
-      var warnRuns=longRunsFromPips(pips,teamKey,oppKey,3);
-      var starRuns=longRunsFromPips(pips,teamKey,teamKey,5);
+      var warnStarts2={},starStarts2={};
+      longRunsFromPips(pips,teamKey,oppKey,3).forEach(function(r){warnStarts2[r.start]=true;});
+      longRunsFromPips(pips,teamKey,teamKey,5).forEach(function(r){starStarts2[r.start]=true;});
+      var hasAnn2=Object.keys(warnStarts2).length||Object.keys(starStarts2).length;
 
       var setRow=document.createElement('div');
       setRow.style.cssText='margin-bottom:6px';
 
-      // Set label + annotation row combined
+      // Set label row
       var headerRow=document.createElement('div');
       headerRow.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:2px;min-height:16px';
       var setLbl=document.createElement('span');
       setLbl.style.cssText='font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;width:30px';
       setLbl.textContent='Set '+(si+1);
       headerRow.appendChild(setLbl);
-
-      // Annotation overlay positioned over the grid
-      if(warnRuns.length||starRuns.length){
-        var annWrap=document.createElement('div');
-        annWrap.style.cssText='position:relative;flex:1;height:16px';
-        warnRuns.forEach(function(r){
-          var leftPx=r.start*(CELL+GAP);
-          var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
-          var ann=document.createElement('div');
-          ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:10px;line-height:16px';
-          ann.textContent='⚠️';annWrap.appendChild(ann);
-        });
-        starRuns.forEach(function(r){
-          var leftPx=r.start*(CELL+GAP);
-          var widthPx=(r.end-r.start+1)*CELL+(r.end-r.start)*GAP;
-          var ann=document.createElement('div');
-          ann.style.cssText='position:absolute;left:'+leftPx+'px;width:'+widthPx+'px;text-align:center;font-size:10px;line-height:16px';
-          ann.textContent='⭐️';annWrap.appendChild(ann);
-        });
-        headerRow.appendChild(annWrap);
-      }
       setRow.appendChild(headerRow);
 
-      // Pip grid
+      // Pip grid — icons overlaid per-cell
       var grid=document.createElement('div');
-      grid.style.cssText='display:flex;flex-wrap:wrap;gap:'+GAP+'px;margin-left:36px'; // 36px = setLbl width + gap
+      grid.style.cssText='display:flex;flex-wrap:wrap;gap:'+GAP+'px;margin-left:36px'+(hasAnn2?';padding-top:16px':''); // 36px = setLbl width + gap
 
       // First-server marker
       var firstMarker=-1;
@@ -1757,6 +1769,16 @@ function renderFullMatchTimeline(sets,el,CELL,GAP){
       }
 
       pips.forEach(function(pip,idx){
+        var icon2=warnStarts2[idx]?'⚠️':(starStarts2[idx]?'⭐️':null);
+        var wrapper2;
+        if(icon2){
+          wrapper2=document.createElement('div');
+          wrapper2.style.cssText='position:relative;flex-shrink:0;width:'+CELL+'px';
+          var iconEl2=document.createElement('div');
+          iconEl2.style.cssText='position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:10px;line-height:14px;white-space:nowrap;pointer-events:none';
+          iconEl2.textContent=icon2;
+          wrapper2.appendChild(iconEl2);
+        }
         var cell=document.createElement('div');
         cell.style.cssText='width:'+CELL+'px;height:'+CELL+'px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0';
         if(pip.scorer===teamKey){
@@ -1769,7 +1791,8 @@ function renderFullMatchTimeline(sets,el,CELL,GAP){
           if(letter){cell.style.color='#666';cell.style.fontSize='8px';cell.textContent=letter;}
         }
         if(idx===firstMarker)cell.style.boxShadow='0 0 0 2px #fff';
-        grid.appendChild(cell);
+        if(wrapper2){wrapper2.appendChild(cell);grid.appendChild(wrapper2);}
+        else grid.appendChild(cell);
       });
       setRow.appendChild(grid);
       section.appendChild(setRow);
@@ -1960,12 +1983,7 @@ function copyMatchTSV(){
     ].join(T);
   });
   var text=lines.join('\n');
-  navigator.clipboard.writeText(text).then(function(){
-    var btn=document.getElementById('btn-copy-match');
-    var orig=btn.textContent;
-    btn.textContent='Copied!';btn.style.color='#7EB8FF';btn.style.borderColor='#378ADD';
-    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
-  }).catch(function(){showToast('Copy failed — try a different browser');});
+  copyToClipboard(text,'btn-copy-match');
 }
 function askImport(){
   hide('reset-confirm');hide('newmatch-confirm');
@@ -2002,11 +2020,17 @@ function importMatch(){
     myStats['atk-net']=parsed.myAtkNet;myStats['atk-out']=parsed.myAtkOut;
     myStats['srv-net']=parsed.mySrvNet;myStats['srv-out']=parsed.mySrvOut;
     myStats.other=parsed.myOther;myStats.total=parsed.myTotal;
+    // If no subcategory detail, fall back to total in 'other'
+    var mySubTotal=parsed.myAtkNet+parsed.myAtkOut+parsed.mySrvNet+parsed.mySrvOut+parsed.myOther;
+    if(mySubTotal===0&&parsed.myErrTotal>0)myStats.other=parsed.myErrTotal;
+
     var oppStats=freshStats();
     oppStats.attack=parsed.oppAttack;oppStats.block=parsed.oppBlock;oppStats.serve=parsed.oppServe;
     oppStats['atk-net']=parsed.oppAtkNet;oppStats['atk-out']=parsed.oppAtkOut;
     oppStats['srv-net']=parsed.oppSrvNet;oppStats['srv-out']=parsed.oppSrvOut;
     oppStats.other=parsed.oppOther;oppStats.total=parsed.oppTotal;
+    var oppSubTotal=parsed.oppAtkNet+parsed.oppAtkOut+parsed.oppSrvNet+parsed.oppSrvOut+parsed.oppOther;
+    if(oppSubTotal===0&&parsed.oppErrTotal>0)oppStats.other=parsed.oppErrTotal;
 
     // Determine finalRunTeam from run array lengths + firstServer
     var fs=parsed.firstServer;
@@ -2069,43 +2093,32 @@ function parseTSVRow(raw){
     return v.split(',').map(function(x){return x.trim();}).filter(Boolean);
   }
   var fs=cols[0].trim();
-  var myAtkNet=int(cols[8]), myAtkOut=int(cols[9]), mySrvNet=int(cols[10]), mySrvOut=int(cols[11]), myOther=int(cols[12]);
-  var oppAtkNet=int(cols[20]), oppAtkOut=int(cols[21]), oppSrvNet=int(cols[22]), oppSrvOut=int(cols[23]), oppOther=int(cols[24]);
-  // Sparse formats (e.g. older sheet exports) only track the error total (col 7 / col 19),
-  // not the subcategory breakdown. When all five subcategories are 0 but the total column
-  // has a value, fall back to dumping the whole total into "other" so stats/butterfly
-  // charts still show the correct error count, just without the breakdown. Never triggers
-  // when subcategory data is actually present.
-  if(myAtkNet+myAtkOut+mySrvNet+mySrvOut+myOther===0){
-    var myErrTotal=int(cols[7]);
-    if(myErrTotal!==0) myOther=myErrTotal;
-  }
-  if(oppAtkNet+oppAtkOut+oppSrvNet+oppSrvOut+oppOther===0){
-    var oppErrTotal=int(cols[19]);
-    if(oppErrTotal!==0) oppOther=oppErrTotal;
-  }
+  var myErrTotal=int(cols[7]);
+  var oppErrTotal=int(cols[19]);
   return{
     firstServer: (fs==='my'||fs==='opp')?fs:null,
     setNum:    int(cols[1]),
     myTotal:   int(cols[2]),
+    myErrTotal: myErrTotal,
     myAttack:  int(cols[4]),
     myBlock:   int(cols[5]),
     myServe:   int(cols[6]),
-    myAtkNet:  myAtkNet,
-    myAtkOut:  myAtkOut,
-    mySrvNet:  mySrvNet,
-    mySrvOut:  mySrvOut,
-    myOther:   myOther,
+    myAtkNet:  int(cols[8]),
+    myAtkOut:  int(cols[9]),
+    mySrvNet:  int(cols[10]),
+    mySrvOut:  int(cols[11]),
+    myOther:   int(cols[12]),
     myRuns:    runs(cols[13]),
     oppTotal:  int(cols[14]),
+    oppErrTotal: oppErrTotal,
     oppAttack: int(cols[16]),
     oppBlock:  int(cols[17]),
     oppServe:  int(cols[18]),
-    oppAtkNet: oppAtkNet,
-    oppAtkOut: oppAtkOut,
-    oppSrvNet: oppSrvNet,
-    oppSrvOut: oppSrvOut,
-    oppOther:  oppOther,
+    oppAtkNet: int(cols[20]),
+    oppAtkOut: int(cols[21]),
+    oppSrvNet: int(cols[22]),
+    oppSrvOut: int(cols[23]),
+    oppOther:  int(cols[24]),
     oppRuns:   runs(cols[25]),
     // Optional cols 26 & 27 — failed sideout letter codes
     myFailedSideouts:  cols.length>26?letters(cols[26]):[],
@@ -2230,6 +2243,9 @@ function showToast(msg){clearTimeout(toastTimer);var el=document.getElementById(
 // Scroll indicators
 attachButtons();
 
+window.addEventListener('resize',adjustFixedHeaderOffset);
+adjustFixedHeaderOffset();
+
 // ── URL hash import: #/import?my=<enc>&opp=<enc>&data=<enc> ──
 (function(){
   if(!/^#\/import\?/.test(location.hash))return;
@@ -2245,6 +2261,7 @@ attachButtons();
     importMatch();
     if(S.savedSets.length){
       openFullMatch();
+      openPresent();
     }
   }catch(e){console.warn('URL import failed:',e);}
 })();

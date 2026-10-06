@@ -53,6 +53,14 @@ select{background:var(--bg2);color:var(--text);border:0.5px solid var(--border);
 .badge-upcoming{background:var(--bg3);color:var(--text3);border:0.5px solid var(--border)}
 .badge-unknown{background:var(--bg3);color:var(--text2);border:1px dashed var(--border)}
 .season-info-card{background:var(--bg2);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.location-info-card .unknown{color:var(--text3);font-style:italic;font-weight:400}
+.location-info-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;color:var(--text2);font-weight:500}
+.location-info-header .chevron{display:inline-block;transition:transform .15s;color:var(--text3)}
+.location-info-header.expanded .chevron{transform:rotate(90deg)}
+.location-info-body{margin-top:12px}
+.location-map{margin-top:12px}
+.location-map img{width:100%;border-radius:var(--radius);display:block}
+.location-map-missing{margin-top:12px;background:var(--bg3);border-radius:var(--radius);padding:16px;text-align:center;color:var(--text3);font-size:12px}
 .season-header{margin-bottom:16px}
 .season-tab-toggle{display:flex;gap:8px;margin-bottom:16px}
 .season-tab-btn{padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font)}
@@ -152,7 +160,8 @@ MATCHES.forEach(m=>{
 });
 const defaultTeam = teamsList[0].slug;
 let activeTeam = defaultTeam;
-const SEASON_HIGHLIGHTS = {"wgah": {"2017-Fall": "https://youtu.be/DPV4foyJHDk", "2018-Winter": "https://youtu.be/7nR5RwX2nI8", "2018-Summer": "https://youtu.be/lF9NIC2r-ew", "2018-Fall": "https://youtu.be/V80Q03m0Jmc", "2019-Winter": "https://youtu.be/YtujUPo--hg", "2023-Winter": "https://youtu.be/UGRrLIowiO0", "2023-Spring": "https://youtu.be/z9j9LekwMqM", "2023-Fall": "https://youtu.be/g_w7mZ_vEOw", "2024-Winter": "https://youtu.be/oKGqYH_pg_s", "2024-Spring": "https://youtu.be/YTb87eClBH4", "2024-Fall": "https://youtu.be/YfTsRMmCZ-Q", "2025-Winter": "https://youtu.be/CLnQq9dsKyA", "2025-Spring": "https://youtu.be/XjNrtjTb1Js", "2025-Fall": "https://youtu.be/Q-hvNRGKVp4", "2026-Winter": "https://youtu.be/Jcnn9DRXiuQ", "2026-Spring": "https://youtu.be/6o9awysKLrQ"}, "back-at-it": {}};
+const SEASON_HIGHLIGHTS = {"wgah": {"2017-Fall": "https://youtu.be/DPV4foyJHDk", "2018-Winter": "https://youtu.be/7nR5RwX2nI8", "2018-Summer": "https://youtu.be/lF9NIC2r-ew", "2018-Fall": "https://youtu.be/V80Q03m0Jmc", "2019-Winter": "https://youtu.be/YtujUPo--hg", "2023-Winter": "https://youtu.be/UGRrLIowiO0", "2023-Spring": "https://youtu.be/z9j9LekwMqM", "2023-Fall": "https://youtu.be/g_w7mZ_vEOw", "2024-Winter": "https://youtu.be/oKGqYH_pg_s", "2024-Spring": "https://youtu.be/YTb87eClBH4", "2024-Fall": "https://youtu.be/YfTsRMmCZ-Q", "2025-Winter": "https://youtu.be/CLnQq9dsKyA", "2025-Spring": "https://youtu.be/XjNrtjTb1Js", "2025-Fall": "https://youtu.be/Q-hvNRGKVp4", "2026-Winter": "https://youtu.be/Jcnn9DRXiuQ", "2026-Spring": "https://youtu.be/6o9awysKLrQ", "2020-Fall": "https://youtu.be/1ta97LTVj5Q"}, "back-at-it": {}};
+const LOCATIONS = {"Queen Mary Elementary": {"address": "2000 Trimble St, Vancouver, BC V6R 3Z4", "phone": "778-233-0748", "notes": null, "image": "ksv_location_queenMary.png"}, "Lord Kitchener Elementary": {"address": "4055 Blenheim St, Vancouver, BC V6S 0C7", "phone": "604-908-4600", "notes": null, "image": "ksv_location_kitchener.png"}, "Walter Moberly Elementary": {"address": "1000 E 59th Ave, Vancouver, BC V5X 1Y7", "phone": "778-838-3129", "notes": null, "image": "ksv_location_moberly.png"}, "Captain Cook Elementary": {"address": "3340 E 54th Ave, Vancouver, BC V5S 1Z3", "phone": "778-228-1845", "notes": null, "image": "ksv_location_captainCook.png"}, "Jules Quesnel Elementary": {"address": "3050 Crown St, Vancouver, BC V6R 4K9", "phone": "604-512-9113", "notes": "Gym is located on the 2nd floor", "image": "ksv_location_quesnel.png"}, "Laura Secord Elementary": {"address": "2500 Lakewood Dr, Vancouver, BC V5N 4V1", "phone": "778-228-1858", "notes": null, "image": "ksv_location_secord.png"}, "Annie B Jamieson Elementary": {"address": "6350 Tisdall St, Vancouver, BC V5Z 3N4", "phone": "604-868-0092", "notes": null, "image": "ksv_location_annieBJamieson.png"}, "Elsie Roy Elementary": {"address": "150 Drake St, Vancouver, BC V6Z 2X1", "phone": "604-358-8521", "notes": null, "image": "ksv_location_elsieRoy.png"}, "Lecole Bilingue Elementary": {"address": "1166 W 14th Ave, Vancouver, BC V6H 1P6", "phone": "604-250-2187", "notes": null, "image": "ksv_location_lecoleBilingue.png"}, "General Gordon Elementary": {"address": "2268 Bayswater St, Vancouver, BC V6K 4P5", "phone": "778-879-1970", "notes": null, "image": "ksv_location_gordon.png"}, "Carnarvon Elementary": {"address": "3400 Balaclava St, Vancouver, BC V6L 0A7", "phone": "778-228-1841", "notes": "Equipment is located under the stage.", "image": "ksv_location_carnarvon.png"}, "Hastings Elementary": {"address": "2625 Franklin St, Vancouver, BC V5K 3W7", "phone": "778-233-1252", "notes": null, "image": "ksv_location_hastings.png"}, "Lord Nelson Elementary": {"address": "1355 Garden Dr, Vancouver, BC V5L 4R1", "phone": "778-228-1702", "notes": null, "image": "ksv_location_lordNelson.png"}, "Lord Tennyson Elementary": {"address": "2650 Maple St, Vancouver, BC V6J 2B2", "phone": "778-228-1877", "notes": null, "image": "ksv_location_tennyson.png"}, "Charles Dickens Elementary": {"address": "1010 E 17th Ave, Vancouver, BC V5V 0A6", "phone": "778-228-1847", "notes": null, "image": "ksv_location_dickens.png"}, "David Lloyd George Elementary": {"address": "8370 Cartier St, Vancouver, BC V6P 4T8", "phone": "778-870-3274", "notes": null, "image": "ksv_location_lloydGeorge.png"}, "Norma Rose Point School": {"address": "5488 Ortona Rd, Vancouver, BC V6T 2L3", "phone": "778-228-1859", "notes": "There are 2 gyms at this School (Lower floor and Domed)", "image": "ksv_locaton_normaRose.png"}, "Maple Grove Elementary": {"address": "1924 W 45th Ave, Vancouver, BC V6M 3S3", "phone": "778 871-6426", "notes": null, "image": "ksv_location_mapleGrove.png"}, "Sir James Douglas Elementary": {"address": "2150 Brigadoon Ave, Vancouver, BC V5P 3Z7", "phone": "778-228-1634", "notes": "Poles in equipment room, net spool in special storage besides entrance", "image": "ksv_location_douglas.png"}, "John Henderson Elementary": {"address": "451 E 53rd Ave, Vancouver, BC V5X 1J3", "phone": "778-228-1853", "notes": null, "image": "ksv_location_henderson.png"}, "Queen Alexandra Elementaty": {"address": "1300 E Broadway, Vancouver, BC V5N 1V6", "phone": "778-228-1871", "notes": "Pole slot is under wooden bleechers, remove them carefully", "image": "ksv_location_queenAlexandra.png"}, "Begbie Elementary": {"address": "1430 Lillooet St, Vancouver, BC V5K 4H6", "phone": "778-228-1837", "notes": null, "image": "ksv_location_begbie.png"}, "Richmond Oval": {"address": "6111 River Rd, Richmond, BC V7C 0A2", "phone": null, "notes": null, "image": null}, "Creekside Recreation Centre": {"address": "1 Athletes Way, Vancouver, BC V5Y 0B1", "phone": null, "notes": null, "image": null}, "Charles Tupper Secondary School": {"address": "419 E 24th Ave, Vancouver, BC V5V 2A1", "phone": null, "notes": null, "image": null}, "Coal Harbour Community Centre": {"address": "480 Broughton St, Vancouver, BC V6E 4N1", "phone": null, "notes": null, "image": null}, "Fleming Elementary": {"address": "6363 Lanark St, Vancouver, BC V5P 2Y8", "phone": "604-354-6638", "notes": null, "image": null}, "Renfrew Elementary": {"address": "3315 E 22nd Ave, Vancouver, BC V5M 2Z2", "phone": "604-817-2842", "notes": null, "image": null}, "Osler Elementary": {"address": "5970 Selkirk St, Vancouver, BC V6M 2Y8", "phone": "778-228-1870", "notes": null, "image": null}};
 
 function parseDate(d){
   if(!d) return null;
@@ -714,8 +723,36 @@ function renderLocationDetail(app, team, skey, slug){
   app.innerHTML = ''
     + '<button class="back-link" onclick="history.back()">&larr; Back</button>'
     + '<div class="detail-header"><div><h2>'+name+'</h2><div class="meta">'+scopeLabelFor(skey)+' \u00b7 '+played+' matches played</div></div>'+selectHtml+'</div>'
+    + locationInfoCardHtml(name)
     + '<div class="match-list">'
     + (list.length ? list.map(m=>matchRow(m,skey||'all')).join('') : '<div class="empty">No matches found</div>')
+    + '</div>';
+}
+
+function locField(label, val){
+  return '<div class="record">'+label+': '+(val ? '<b>'+val+'</b>' : '<span class="unknown">Unknown</span>')+'</div>';
+}
+
+function toggleLocationInfo(el){
+  const body = el.nextElementSibling;
+  const expanded = body.style.display !== 'none';
+  body.style.display = expanded ? 'none' : '';
+  el.classList.toggle('expanded', !expanded);
+}
+
+function locationInfoCardHtml(name){
+  const loc = LOCATIONS[name];
+  if(!loc) return '';
+  return '<div class="season-info-card location-info-card">'
+    + '<div class="location-info-header" onclick="toggleLocationInfo(this)"><span>Location Info</span><span class="chevron">&#9656;</span></div>'
+    + '<div class="location-info-body" style="display:none">'
+    + locField('Address', loc.address)
+    + locField('Custodian Contact', loc.phone)
+    + (loc.notes ? locField('Notes', loc.notes) : '')
+    + (loc.image
+        ? '<div class="location-map"><img src="ksv_locations/'+loc.image+'" alt="Map of '+name+'"></div>'
+        : '<div class="location-map-missing">Map image unavailable</div>')
+    + '</div>'
     + '</div>';
 }
 
