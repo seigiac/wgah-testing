@@ -300,6 +300,20 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .nav-arrow:disabled{opacity:0.25;cursor:default;pointer-events:none}
 #viewer-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:10px 16px 10px;border-bottom:0.5px solid var(--border2)}
 #viewer-body{padding-top:0} /* JS sets margin-top after measuring header */
+/* Viewer header: fixed-width title keeps nav arrows in place ("Set 1" vs "Full Match"); empty score line removed; compact on mobile */
+.vh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.vh-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}
+#viewer-title{width:6em;text-align:center;white-space:nowrap}
+#viewer-score-line{display:none}
+@media(max-width:899px){
+  #viewer-sticky-header{padding:8px 16px}
+  .vh-top{margin-bottom:4px}
+  .vh-nav{margin-bottom:4px}
+  #viewer-title{font-size:18px;margin-bottom:0}
+  #viewer-sticky-header .scoreboard{margin-bottom:0}
+  #viewer-sticky-header .score-side{padding:4px 10px}
+  #viewer-sticky-header .score-num{font-size:24px!important}
+}
 @media(min-width:900px){
   :root{
     --fs-h1:56px;--fs-h2:32px;--fs-h3:24px;
@@ -524,7 +538,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 -->
 <div id="screen-viewer" class="hidden">
   <div id="viewer-sticky-header">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="vh-top">
       <button class="viewer-back" style="margin-bottom:0" onclick="closeViewer()">&#8249; Back to tracker</button>
       <div style="display:flex;gap:6px">
         <button id="btn-copy-set" class="hidden" onclick="copySetTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
@@ -535,7 +549,7 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
     </div>
 
     <!-- Title with arrow navigation -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px">
+    <div class="vh-nav">
       <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
       <div class="viewer-title" id="viewer-title">Set 1</div>
       <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
@@ -547,13 +561,11 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
       <div class="score-side" id="viewer-score-my-side">
         <div class="team-name" id="viewer-name-my">My Team</div>
         <div class="score-num" id="viewer-sc-my">0</div>
-        <div style="height:16px"></div>
       </div>
       <div class="vs">vs</div>
       <div class="score-side opp-side" id="viewer-score-opp-side">
         <div class="team-name" id="viewer-name-opp">Opponent</div>
         <div class="score-num" id="viewer-sc-opp">0</div>
-        <div style="height:16px"></div>
       </div>
     </div>
   </div><!-- /viewer-sticky-header -->
@@ -2251,9 +2263,9 @@ adjustFixedHeaderOffset();
   if(!/^#\/import\?/.test(location.hash))return;
   try{
     var params=new URLSearchParams(location.hash.replace(/^#\/import\?/,''));
-    var my=decodeURIComponent(params.get('my')||'');
-    var opp=decodeURIComponent(params.get('opp')||'');
-    var data=decodeURIComponent(params.get('data')||'');
+    var my=params.get('my')||'';
+    var opp=params.get('opp')||'';
+    var data=params.get('data')||'';
     if(!data)return;
     document.getElementById('inp-my').value=my;
     document.getElementById('inp-opp').value=opp;
@@ -2261,9 +2273,8 @@ adjustFixedHeaderOffset();
     importMatch();
     if(S.savedSets.length){
       openFullMatch();
-      openPresent();
     }
-  }catch(e){console.warn('URL import failed:',e);}
+  }catch(e){console.warn('URL import failed:',e);showScreen('setup');}
 })();
 </script>
 </body>
