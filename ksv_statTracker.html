@@ -301,14 +301,15 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 #viewer-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:10px 16px 10px;border-bottom:0.5px solid var(--border2)}
 #viewer-body{padding-top:0} /* JS sets margin-top after measuring header */
 /* Viewer header: fixed-width title keeps nav arrows in place ("Set 1" vs "Full Match"); empty score line removed; compact on mobile */
-.vh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.vh-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}
+/* .vh-top holds back button, title nav and actions. Mobile: back+actions on row 1, nav wraps to its own row (order:3). Desktop: one 3-column row. */
+.vh-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:12px}
+.vh-nav{display:flex;align-items:center;justify-content:center;gap:12px;order:3;flex:0 0 100%;margin-top:8px}
 #viewer-title{width:6em;text-align:center;white-space:nowrap}
 #viewer-score-line{display:none}
 @media(max-width:899px){
   #viewer-sticky-header{padding:8px 16px}
   .vh-top{margin-bottom:4px}
-  .vh-nav{margin-bottom:4px}
+  .vh-nav{margin-top:4px}
   #viewer-title{font-size:18px;margin-bottom:0}
   #viewer-sticky-header .scoreboard{margin-bottom:0}
   #viewer-sticky-header .score-side{padding:4px 10px}
@@ -322,10 +323,21 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
   }
   body{padding-bottom:0}
   .app{max-width:1400px;padding:40px;overflow-x:visible}
-  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
-  #viewer-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
+  /* Negative top margin cancels .app's 40px top padding so the header sits flush at the top and sticks immediately (no 40px scroll-then-lock) */
+  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:-40px -40px 16px}
+  #tracker-sticky-header .scoreboard{margin-bottom:0}
+  #viewer-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:12px 40px 10px;margin:-40px -40px 24px}
   .scoreboard-compact .score-num{font-size:var(--fs-h1)!important}
   .scoreboard-compact .score-side{padding:10px 12px}
+  /* Compact viewer header: one row (back | title nav | actions) + slim scoreboard */
+  .vh-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:8px}
+  .vh-nav{order:0;flex:none;margin:0;justify-self:center}
+  .vh-top .viewer-back{justify-self:start}
+  .vh-actions{justify-self:end}
+  #viewer-title{font-size:26px;margin-bottom:0}
+  #viewer-sticky-header .scoreboard{max-width:400px;margin:0 auto}
+  #viewer-sticky-header .score-side{padding:6px 12px}
+  #viewer-sticky-header .score-num{font-size:40px!important}
   .scoreboard{margin-bottom:40px}
   /* Landing page: extra space before "Who serves first?" */
   #inp-opp{margin-bottom:24px}
@@ -540,19 +552,20 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
   <div id="viewer-sticky-header">
     <div class="vh-top">
       <button class="viewer-back" style="margin-bottom:0" onclick="closeViewer()">&#8249; Back to tracker</button>
-      <div style="display:flex;gap:6px">
+
+      <!-- Title with arrow navigation -->
+      <div class="vh-nav">
+        <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
+        <div class="viewer-title" id="viewer-title">Set 1</div>
+        <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
+      </div>
+
+      <div class="vh-actions" style="display:flex;gap:6px">
         <button id="btn-copy-set" class="hidden" onclick="copySetTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
         <button id="btn-copy-match" class="hidden" onclick="copyMatchTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
         <button id="btn-screenshot" class="hidden" onclick="captureScreenshot()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Save image</button>
         <button id="btn-present" class="hidden" onclick="openPresent()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid #378ADD;background:#0C2440;color:#7EB8FF;cursor:pointer;font-family:var(--font)">Present ↗</button>
       </div>
-    </div>
-
-    <!-- Title with arrow navigation -->
-    <div class="vh-nav">
-      <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
-      <div class="viewer-title" id="viewer-title">Set 1</div>
-      <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
     </div>
     <div class="viewer-score-line" id="viewer-score-line"></div>
 
