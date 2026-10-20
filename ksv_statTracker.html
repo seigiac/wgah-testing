@@ -153,6 +153,25 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .set-card.full-match-card{border-color:rgba(55,138,221,0.3);background:#0C2440}
 .set-card.full-match-card .set-card-num{color:#7EB8FF}
 
+/* Assessment card (set viewer = title + sentence; Full Match = collapsible table) */
+.assess-card{background:var(--bg2);border-radius:var(--radius-lg);border-left:4px solid var(--text3);padding:14px 16px;margin-bottom:8px}
+.assess-card.win{border-left-color:#4CAF6A}
+.assess-card.loss{border-left-color:#E24B4A}
+.assess-title{font-size:var(--fs-h3);font-weight:500;color:var(--text)}
+.assess-sent{font-size:var(--fs-body-s);color:var(--text2);margin-top:4px}
+details.assess-card>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+details.assess-card>summary::-webkit-details-marker{display:none}
+details.assess-card>summary::after{content:'▸';font-size:10px;color:var(--text3)}
+details.assess-card[open]>summary::after{content:'▾'}
+.assess-head,.assess-row{display:grid;grid-template-columns:34px 64px 1fr;gap:8px;align-items:baseline}
+.assess-head{margin-top:12px;padding-bottom:6px;font-size:var(--fs-eyebrow);font-weight:500;text-transform:uppercase;letter-spacing:var(--ls-eyebrow);color:var(--text3)}
+.assess-row{padding:10px 0;border-top:0.5px solid var(--border2)}
+.assess-row .as-set{font-size:var(--fs-body-m);color:var(--text2)}
+.assess-row .as-sc{font-size:var(--fs-body-m);color:var(--text2)}
+.assess-row .as-sc.win{color:#4CAF6A;font-weight:500}
+.assess-row .as-nm{font-size:var(--fs-body-m);font-weight:500;color:var(--text)}
+.assess-row .as-sn{font-size:var(--fs-body-s);color:var(--text2);margin-top:2px}
+
 /* Actions */
 .actions{display:flex;gap:6px;margin-bottom:10px}
 .actions button{flex:1;padding:10px 6px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);cursor:pointer;font-size:var(--fs-body-s);color:var(--text);font-family:var(--font)}
@@ -300,21 +319,6 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 .nav-arrow:disabled{opacity:0.25;cursor:default;pointer-events:none}
 #viewer-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:10px 16px 10px;border-bottom:0.5px solid var(--border2)}
 #viewer-body{padding-top:0} /* JS sets margin-top after measuring header */
-/* Viewer header: fixed-width title keeps nav arrows in place ("Set 1" vs "Full Match"); empty score line removed; compact on mobile */
-/* .vh-top holds back button, title nav and actions. Mobile: back+actions on row 1, nav wraps to its own row (order:3). Desktop: one 3-column row. */
-.vh-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:12px}
-.vh-nav{display:flex;align-items:center;justify-content:center;gap:12px;order:3;flex:0 0 100%;margin-top:8px}
-#viewer-title{width:6em;text-align:center;white-space:nowrap}
-#viewer-score-line{display:none}
-@media(max-width:899px){
-  #viewer-sticky-header{padding:8px 16px}
-  .vh-top{margin-bottom:4px}
-  .vh-nav{margin-top:4px}
-  #viewer-title{font-size:18px;margin-bottom:0}
-  #viewer-sticky-header .scoreboard{margin-bottom:0}
-  #viewer-sticky-header .score-side{padding:4px 10px}
-  #viewer-sticky-header .score-num{font-size:24px!important}
-}
 @media(min-width:900px){
   :root{
     --fs-h1:56px;--fs-h2:32px;--fs-h3:24px;
@@ -323,21 +327,10 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
   }
   body{padding-bottom:0}
   .app{max-width:1400px;padding:40px;overflow-x:visible}
-  /* Negative top margin cancels .app's 40px top padding so the header sits flush at the top and sticks immediately (no 40px scroll-then-lock) */
-  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:-40px -40px 16px}
-  #tracker-sticky-header .scoreboard{margin-bottom:0}
-  #viewer-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:12px 40px 10px;margin:-40px -40px 24px}
+  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
+  #viewer-sticky-header{position:sticky;top:0;left:auto;right:auto;padding:20px 40px 12px;margin:0 -40px 40px}
   .scoreboard-compact .score-num{font-size:var(--fs-h1)!important}
   .scoreboard-compact .score-side{padding:10px 12px}
-  /* Compact viewer header: one row (back | title nav | actions) + slim scoreboard */
-  .vh-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:8px}
-  .vh-nav{order:0;flex:none;margin:0;justify-self:center}
-  .vh-top .viewer-back{justify-self:start}
-  .vh-actions{justify-self:end}
-  #viewer-title{font-size:26px;margin-bottom:0}
-  #viewer-sticky-header .scoreboard{max-width:400px;margin:0 auto}
-  #viewer-sticky-header .score-side{padding:6px 12px}
-  #viewer-sticky-header .score-num{font-size:40px!important}
   .scoreboard{margin-bottom:40px}
   /* Landing page: extra space before "Who serves first?" */
   #inp-opp{margin-bottom:24px}
@@ -550,22 +543,22 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 -->
 <div id="screen-viewer" class="hidden">
   <div id="viewer-sticky-header">
-    <div class="vh-top">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <button class="viewer-back" style="margin-bottom:0" onclick="closeViewer()">&#8249; Back to tracker</button>
-
-      <!-- Title with arrow navigation -->
-      <div class="vh-nav">
-        <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
-        <div class="viewer-title" id="viewer-title">Set 1</div>
-        <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
-      </div>
-
-      <div class="vh-actions" style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
         <button id="btn-copy-set" class="hidden" onclick="copySetTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
         <button id="btn-copy-match" class="hidden" onclick="copyMatchTSV()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy plain text</button>
+        <button id="btn-copy-match-assess" class="hidden" onclick="copyMatchAssessment()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Copy assessment</button>
         <button id="btn-screenshot" class="hidden" onclick="captureScreenshot()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font)">Save image</button>
         <button id="btn-present" class="hidden" onclick="openPresent()" style="font-size:11px;padding:6px 12px;border-radius:var(--radius);border:0.5px solid #378ADD;background:#0C2440;color:#7EB8FF;cursor:pointer;font-family:var(--font)">Present ↗</button>
       </div>
+    </div>
+
+    <!-- Title with arrow navigation -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px">
+      <button id="btn-nav-prev" onclick="navigateViewer(-1)" class="nav-arrow" aria-label="Previous">&#8592;</button>
+      <div class="viewer-title" id="viewer-title">Set 1</div>
+      <button id="btn-nav-next" onclick="navigateViewer(1)" class="nav-arrow" aria-label="Next">&#8594;</button>
     </div>
     <div class="viewer-score-line" id="viewer-score-line"></div>
 
@@ -574,16 +567,20 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
       <div class="score-side" id="viewer-score-my-side">
         <div class="team-name" id="viewer-name-my">My Team</div>
         <div class="score-num" id="viewer-sc-my">0</div>
+        <div style="height:16px"></div>
       </div>
       <div class="vs">vs</div>
       <div class="score-side opp-side" id="viewer-score-opp-side">
         <div class="team-name" id="viewer-name-opp">Opponent</div>
         <div class="score-num" id="viewer-sc-opp">0</div>
+        <div style="height:16px"></div>
       </div>
     </div>
   </div><!-- /viewer-sticky-header -->
 
     <div id="viewer-body">
+    <!-- Assessment (set or match) — filled by renderSetAssessment / renderMatchAssessment -->
+    <div id="viewer-assess" style="grid-column:1/-1"></div>
     <!-- Centered STATS title spanning both columns -->
     <div class="stats-section-title" style="grid-column:1/-1">Stats</div>
 
@@ -703,6 +700,167 @@ body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);backgr
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* Set + match assessment — plain JS, no dependencies, no DOM.
+   Works in a <script> tag (global KSVAssess) or Node (module.exports).
+   Verified with test_assessment.js against test_cases.json. */
+(function (root) {
+  'use strict';
+
+  // Level: 1 = Narrow, 2 = Plain, 3 = Strong.  Labels are a replaceable surface: edit only these tables.
+  var SET_LABELS = {
+    'W|Earned': ['Hard-fought Win', 'Earned Win', 'Dominant Win'],
+    'W|Given': ['Opportunistic Win', 'Gifted Win', 'Free Win'],
+    'L|Earned': ['Avoidable Loss', 'Self-inflicted Loss', 'Squandered Loss'],
+    'L|Given': ['Hard-fought Loss', 'Deserved Loss', 'Overwhelming Loss'],
+    'W|Comeback': ['Comeback Win', 'Comeback Win', 'Comeback Win'],
+    'L|Comeback': ['Blown-lead Loss', 'Blown-lead Loss', 'Blown-lead Loss']
+  };
+  var MATCH_LABELS = {
+    'W|Even': ['Narrow Win', 'Well-fought Win', 'Gifted Win'],
+    'L|Even': ['Narrow Loss', 'Well-fought Loss', 'Sloppy Loss'],
+    'W|Superior': ['Underwhelming Win', 'Convincing Win', 'Dominant Win'],
+    'L|Superior': ['Unexpected Loss', 'Upset Loss', 'Self-inflicted Loss'],
+    'W|Inferior': ['Opportunistic Win', 'Unexpected Win', 'Gifted Win'],
+    'L|Inferior': ['Closer than expected Loss', 'Deserved Loss', 'Overwhelming Loss']
+  };
+  var BASE = {
+    'W|Given|1': 'a well-fought set where they had the edge, but we held on as their errors mounted.',
+    'W|Given|2': 'they had the offensive edge, but their excessive errors gave us the win.',
+    'W|Given|3': 'their excessive errors drove the lopsided score.',
+    'W|Earned|1': 'a sloppy set where our inefficiency kept them in it, but our offensive edge prevailed.',
+    'W|Earned|2': 'we had the clear offensive edge.',
+    'W|Earned|3': 'an exceptional offensive output.',
+    'L|Given|1': 'a tight, error-filled set, but they had the offensive edge.',
+    'L|Given|2': 'an error-filled set where they had the clear offensive edge.',
+    'L|Given|3': 'we were dominated offensively.',
+    'L|Earned|1': 'we had the offensive edge, but our errors cost us the set.',
+    'L|Earned|2': 'our errors outweighed their offense and decided the set.',   // provisional
+    'L|Earned|3': 'our unusually inefficient play gave the set away.'
+  };
+  var CLEAN_MAX_ERRORS = 2; // provisional
+  var ACE_MIN = 7;          // provisional
+
+  /* Build the input object for one set from the tracker's 28-column import row (array of strings).
+     Index = 0-based position in the 28-column import row. */
+  function setFromTsv(f) {
+    function n(v) { v = parseFloat(v); return isNaN(v) ? 0 : v; }
+    function runs(v) { return String(v || '').split(',').filter(function (x) { return x.trim() !== ''; }).map(function (x) { return Math.trunc(parseFloat(x)); }); }
+    return {
+      set: n(f[1]), A: n(f[2]), B: n(f[14]),
+      P: n(f[4]) + n(f[5]) + n(f[6]), OE: n(f[7]),
+      OP: n(f[16]) + n(f[17]) + n(f[18]), UE: n(f[19]),
+      aces: n(f[6]), opp_aces: n(f[18]),
+      first_us: String(f[0] || '').trim().toLowerCase().indexOf('my') === 0,
+      our_runs: runs(f[13]), opp_runs: runs(f[25])
+    };
+  }
+
+  function source(s) {
+    var pg = s.P - s.OP;
+    if (s.A > s.B) return (s.P > s.OE || (s.P === s.OE && pg > 0)) ? 'Earned' : 'Given';
+    var d = s.UE - s.OP;
+    if (d > 2) return 'Earned';
+    if (d >= 0) return (s.OE - s.P >= 3) ? 'Given' : 'Earned';
+    return 'Given';
+  }
+
+  function degree(s, src) {
+    var A = s.A, B = s.B, win = A > B, margin = Math.abs(A - B), pg = s.P - s.OP, total = A + B, share;
+    if (win) share = A ? (src === 'Given' ? s.OE / A : s.P / A) : 0;
+    else share = B ? (src === 'Given' ? s.OP / B : s.UE / B) : 0;
+    if (margin >= 9 && share >= 0.55) return 3;
+    if (!win && src === 'Earned' && s.UE > s.OP && (s.UE - s.OP) / total >= 0.20 && margin >= 5) return 3;
+    var against = (win && pg < 0) || (!win && pg > 0);
+    if ((Math.abs(pg) / total >= 0.24 || against) && margin >= 5) return 3;
+    if (margin === 1) return 1;
+    if (margin === 2) {
+      var w = win ? A : B, wp = win ? s.P : s.OP;
+      if (!(w && wp / w >= 0.70)) return 1;
+    }
+    return 2;
+  }
+
+  function progression(s) {
+    var o = s.our_runs, t = s.opp_runs, a = 0, b = 0, oi = 0, ti = 0, turn = s.first_us ? 'o' : 't', mlUs = 0, mlTh = 0, runs = [];
+    while (oi < o.length || ti < t.length) {
+      if (turn === 'o') { if (oi < o.length) { runs.push(['us', o[oi], a, b]); a += o[oi]; oi++; } turn = 't'; }
+      else { if (ti < t.length) { runs.push(['them', t[ti], a, b]); b += t[ti]; ti++; } turn = 'o'; }
+      mlUs = Math.max(mlUs, a - b); mlTh = Math.max(mlTh, b - a);
+    }
+    return { a: a, b: b, mlUs: mlUs, mlTh: mlTh, runs: runs };
+  }
+
+  // Comeback: only if the serve runs rebuild the final score. Returns null or details.
+  function comeback(s) {
+    var p = progression(s);
+    if (p.a !== s.A || p.b !== s.B || !p.runs.length) return null;
+    var win = s.A > s.B, wside = win ? 'us' : 'them', leadLost = win ? p.mlTh : p.mlUs, big = null;
+    p.runs.forEach(function (x) {
+      var before = win ? (x[3] - x[2]) : (x[2] - x[3]); // winner's deficit before the run
+      if (x[0] === wside && x[1] >= 10 && before > 0) big = x;
+    });
+    if (big) return { kind: 'run', run: big[1], beforeUs: big[2], beforeThem: big[3],
+      endsSet: win ? (big[2] + big[1] === s.A) : (big[3] + big[1] === s.B), lead: leadLost };
+    if (leadLost >= 7) return { kind: 'lead', lead: leadLost };
+    return null;
+  }
+
+  function comebackSentence(s, cb) {
+    var win = s.A > s.B, d = '–';
+    if (cb.kind === 'run') {
+      var end = cb.endsSet ? (win ? ' to close out the set.' : ' to end the set.') : '.';
+      if (win) return 'down ' + cb.beforeThem + d + cb.beforeUs + ', we stormed back with a ' + cb.run + d + '0 run' + end;
+      return 'a decisive ' + cb.beforeUs + d + cb.beforeThem + ' lead turned into an ' + cb.run + d + '0 collapse' + end;
+    }
+    return win ? 'we came back from a ' + cb.lead + '-point deficit to win the set.'
+               : 'a ' + cb.lead + '-point lead slipped away and cost us the set.'; // provisional wording
+  }
+
+  /* Assess one set. Returns {result, attr, level, label, sentence}. Ties: result 'T', blanks, label 'Tie'. */
+  function assessSet(s) {
+    if (s.A === s.B) return { result: 'T', attr: '', level: '', label: 'Tie', sentence: '' };
+    var res = s.A > s.B ? 'W' : 'L', src = source(s), lvl = degree(s, src), cb = comeback(s), lab, t;
+    if (cb) {
+      lab = SET_LABELS[res + '|Comeback'][0];
+      return { result: res, attr: 'Comeback', level: 3, label: lab, sentence: lab + ': ' + comebackSentence(s, cb), underlying: src };
+    }
+    lab = SET_LABELS[res + '|' + src][lvl - 1];
+    var k = res + '|' + src + '|' + lvl, clean = s.UE <= CLEAN_MAX_ERRORS;
+    t = BASE[k];
+    if (k === 'W|Earned|2' && clean) t = 'an offensive edge sharpened by clean, efficient play.';
+    if (k === 'W|Earned|3') {
+      if (s.aces >= ACE_MIN) t = 'an exceptional offensive output amplified by overwhelming serving.';
+      else if (clean) t = 'an exceptional offensive output amplified by clean, efficient play.';
+    }
+    if (k === 'W|Given|3' && clean) t = 'clean, efficient play gave us the offensive edge, but their excessive errors drove the lopsided score.';
+    if (k === 'L|Given|3' && s.opp_aces >= ACE_MIN) t = 'we were dominated offensively, made worse by exceptionally poor serve reception.';
+    return { result: res, attr: src, level: lvl, label: lab, sentence: lab + ': ' + t };
+  }
+
+  function round(x, d) { var m = Math.pow(10, d); return Math.round(x * m + (x >= 0 ? 1e-9 : -1e-9)) / m; }
+
+  /* Assess one match from ALL its saved sets (array of set input objects). */
+  function assessMatch(sets) {
+    var sw = 0, sl = 0, P = 0, OP = 0, OE = 0, pts = 0, marg = 0;
+    sets.forEach(function (s) { if (s.A > s.B) sw++; else if (s.A < s.B) sl++; P += s.P; OP += s.OP; OE += s.OE; pts += s.A; marg += s.A - s.B; });
+    if (sw === sl) return { result: 'T', strength: '', level: '', label: 'Tie', share: '', avgMargin: '' };
+    var res = sw > sl ? 'W' : 'L', share = (P - OP) / (P + OP), avg = marg / sets.length;
+    var strength = Math.abs(share) < 0.10 ? 'Even' : (share > 0 ? 'Superior' : 'Inferior');
+    var lvl = Math.abs(sw - sl) === 1 ? 1 : (Math.abs(avg) >= 5 ? 3 : 2);
+    if (res === 'W' && strength === 'Superior' && lvl === 3 && pts && OE / pts > 0.55) lvl = 2; // 55% cap
+    return { result: res, strength: strength, level: lvl, label: MATCH_LABELS[res + '|' + strength][lvl - 1],
+             share: round(share, 3), avgMargin: round(avg, 1) };
+  }
+
+  /* Paste rows (tab-separated, no header). Set: Result, Attribution, Level, Label, Sentence.  Match: Strength, Level, Assessment, Production Share, Avg Set Margin. */
+  function setRowTsv(a) { return [a.result, a.attr, a.level, a.label, a.sentence].join('\t'); }
+  function matchRowTsv(a) { return [a.strength, a.level, a.label].join('\t'); } // trimmed to 3 columns (Production Share / Avg Set Margin dropped from the paste row)
+
+  var api = { setRowTsv: setRowTsv, matchRowTsv: matchRowTsv, setFromTsv: setFromTsv, assessSet: assessSet, assessMatch: assessMatch, SET_LABELS: SET_LABELS, MATCH_LABELS: MATCH_LABELS };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.KSVAssess = api;
+})(this);
+</script>
 <script>
 var ERRORS=['atk-out','atk-net','srv-out','srv-net','other'];
 var ALL_CATS=['attack','block','serve','atk-out','atk-net','srv-out','srv-net','other'];
@@ -1329,12 +1487,12 @@ function renderViewerVisualsFullMatch(sets,myName,oppName){
 
 var vCopySet=null; // set being viewed, used by copySetTSV
 
-function copyToClipboard(text,btnId){
+function copyToClipboard(text,btnId,doneLabel){
   var btn=btnId?document.getElementById(btnId):null;
   function onSuccess(){
     if(!btn)return;
     var orig=btn.textContent;
-    btn.textContent='Copied!';btn.style.color='#7EB8FF';btn.style.borderColor='#378ADD';
+    btn.textContent=doneLabel||'Copied!';btn.style.color='#7EB8FF';btn.style.borderColor='#378ADD';
     setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},2000);
   }
   function onFail(){showToast('Copy failed — try long-pressing and copying manually');}
@@ -1358,29 +1516,73 @@ function execCopy(text){
   }catch(e){return false;}
 }
 
-function copySetTSV(){
-  var s=vCopySet;
-  if(!s){showToast('Nothing to copy');return;}
-  var T='\t';
+/* The 28 plain-text columns for one saved set (the import/export format). */
+function setCols(s){
   var my=s.myStats,opp=s.oppStats;
   var myEarned=my.attack+my.block+my.serve;
   var oppEarned=opp.attack+opp.block+opp.serve;
   var myErrTotal=ERRORS.reduce(function(a,c){return a+my[c];},0);
   var oppErrTotal=ERRORS.reduce(function(a,c){return a+opp[c];},0);
-  var myRuns=s.myRuns.join(',');
-  var oppRuns=s.oppRuns.join(',');
-  var myFS=(s.myFailedSideouts||[]).join(',');
-  var oppFS=(s.oppFailedSideouts||[]).join(',');
-  var row=[
+  return[
     s.firstServer||'',s.setNum,
     my.total,myEarned,my.attack,my.block,my.serve,
     myErrTotal,my['atk-net'],my['atk-out'],my['srv-net'],my['srv-out'],my.other,
-    myRuns||'',
+    s.myRuns.join(','),
     opp.total,oppEarned,opp.attack,opp.block,opp.serve,
     oppErrTotal,opp['atk-net'],opp['atk-out'],opp['srv-net'],opp['srv-out'],opp.other,
-    oppRuns||'',myFS,oppFS
-  ].join(T);
-  copyToClipboard(row,'btn-copy-set');
+    s.oppRuns.join(','),
+    (s.myFailedSideouts||[]).join(','),
+    (s.oppFailedSideouts||[]).join(',')
+  ];
+}
+/* Set row for Copy plain text: the 28 columns plus 5 assessment columns (Result, Attribution, Level, Label, Sentence).
+   The assessment is derived from the stats at copy time — never stored on the saved set. */
+function setRowWithAssessment(s){
+  var cols=setCols(s);
+  var a=KSVAssess.assessSet(KSVAssess.setFromTsv(cols));
+  return cols.join('\t')+'\t'+KSVAssess.setRowTsv(a);
+}
+
+function copySetTSV(){
+  var s=vCopySet;
+  if(!s){showToast('Nothing to copy');return;}
+  copyToClipboard(setRowWithAssessment(s),'btn-copy-set');
+}
+
+/* ── On-screen assessment (computed from stats each time, never stored) ── */
+function sentenceCase(l){return l?l.charAt(0)+l.slice(1).toLowerCase():'';}
+function assessClass(r){return r==='W'?'win':(r==='L'?'loss':'');}
+function setAssessView(s){
+  var a=KSVAssess.assessSet(KSVAssess.setFromTsv(setCols(s)));
+  return{res:a.result,label:sentenceCase(a.label),text:a.sentence?a.sentence.slice(a.label.length+2):''};
+}
+function renderSetAssessment(s){
+  var x=setAssessView(s);
+  document.getElementById('viewer-assess').innerHTML=
+    '<div class="vis-sub-label">Assessment</div>'
+    +'<div class="assess-card '+assessClass(x.res)+'"><div class="assess-title">'+x.label+'</div>'
+    +(x.text?'<div class="assess-sent">'+x.text+'</div>':'')+'</div>';
+}
+function renderMatchAssessment(sets){
+  var m=KSVAssess.assessMatch(sets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
+  var rows=sets.map(function(s){
+    var x=setAssessView(s);
+    return '<div class="assess-row"><div class="as-set">'+s.setNum+'</div>'
+      +'<div class="as-sc '+assessClass(x.res)+'">'+s.myTotal+'–'+s.oppTotal+'</div>'
+      +'<div><div class="as-nm">'+x.label+'</div>'+(x.text?'<div class="as-sn">'+x.text+'</div>':'')+'</div></div>';
+  }).join('');
+  document.getElementById('viewer-assess').innerHTML=
+    '<div class="vis-sub-label">Assessment</div>'
+    +'<details class="assess-card '+assessClass(m.result)+'"><summary class="assess-title">'+m.label+'</summary>'
+    +'<div class="assess-head"><div>Set</div><div>Score</div><div>Assessment</div></div>'+rows+'</details>';
+}
+
+/* Match assessment row (Strength, Level, Assessment) from all saved sets. */
+function copyMatchAssessment(){
+  var n=S.savedSets.length;
+  if(!n){showToast('No sets to copy');return;}
+  var a=KSVAssess.assessMatch(S.savedSets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
+  copyToClipboard(KSVAssess.matchRowTsv(a),'btn-copy-match-assess','Copied ('+n+' set'+(n===1?'':'s')+')');
 }
 
 /* ══════════════ openViewer ══════════════ */
@@ -1409,6 +1611,7 @@ function openViewer(idx){
   vCurrentIdx=idx;
   vCopySet=s;
   hide('btn-copy-match');
+  hide('btn-copy-match-assess');
   show('btn-copy-set');
   show('btn-screenshot');
   show('btn-present');
@@ -1528,6 +1731,7 @@ function openViewer(idx){
   momWrap.style.cssText='position:relative;width:100%;height:180px';
   momWrap.innerHTML='<canvas id="v-vis-momentum"></canvas>';
 
+  renderSetAssessment(s);
   renderViewerVisuals(s);
   showScreen('viewer');
   setTimeout(adjustFixedHeaderOffset,0);
@@ -1541,6 +1745,7 @@ function openFullMatch(){
   vCopySet=null;
   hide('btn-copy-set');
   show('btn-copy-match');
+  show('btn-copy-match-assess');
   show('btn-screenshot');
   show('btn-present');
   hide('viewer-serve-section');
@@ -1687,6 +1892,7 @@ function openFullMatch(){
   momWrap.style.cssText='';
   momWrap.innerHTML='';
 
+  renderMatchAssessment(sets);
   renderViewerVisualsFullMatch(sets,myName,oppName);
   showScreen('viewer');
 }
@@ -1921,6 +2127,7 @@ function closeViewer(){
   vCopySet=null;
   hide('btn-copy-set');
   hide('btn-copy-match');
+  hide('btn-copy-match-assess');
   hide('btn-screenshot');
   hide('btn-present');
   // Restore momentum wrap to default single-chart state
@@ -1988,26 +2195,7 @@ function confirmNewMatch(){S.savedSets=[];hide('saved-area');document.getElement
 
 function copyMatchTSV(){
   if(!S.savedSets.length){showToast('No sets to copy');return;}
-  var T='\t';
-  var lines=S.savedSets.map(function(s){
-    var my=s.myStats,opp=s.oppStats;
-    var myEarned=my.attack+my.block+my.serve;
-    var oppEarned=opp.attack+opp.block+opp.serve;
-    var myErrTotal=ERRORS.reduce(function(a,c){return a+my[c];},0);
-    var oppErrTotal=ERRORS.reduce(function(a,c){return a+opp[c];},0);
-    return[
-      s.firstServer||'',s.setNum,
-      my.total,myEarned,my.attack,my.block,my.serve,
-      myErrTotal,my['atk-net'],my['atk-out'],my['srv-net'],my['srv-out'],my.other,
-      s.myRuns.join(','),
-      opp.total,oppEarned,opp.attack,opp.block,opp.serve,
-      oppErrTotal,opp['atk-net'],opp['atk-out'],opp['srv-net'],opp['srv-out'],opp.other,
-      s.oppRuns.join(','),
-      (s.myFailedSideouts||[]).join(','),
-      (s.oppFailedSideouts||[]).join(',')
-    ].join(T);
-  });
-  var text=lines.join('\n');
+  var text=S.savedSets.map(setRowWithAssessment).join('\n');
   copyToClipboard(text,'btn-copy-match');
 }
 function askImport(){
@@ -2227,13 +2415,15 @@ function renderSavedList(){
   // Permanent "Full Match" entry at top
   var fm=document.createElement('div');
   fm.className='set-card full-match-card';
-  fm.innerHTML='<div><div class="set-card-num">Full Match</div><div class="set-card-score">All '+(S.savedSets.length)+' set'+(S.savedSets.length===1?'':'s')+' · aggregated stats</div></div><div class="set-card-arrow">›</div>';
+  var fmSw=0,fmSl=0;S.savedSets.forEach(function(s){if(s.myTotal>s.oppTotal)fmSw++;else if(s.oppTotal>s.myTotal)fmSl++;});
+  var fmLabel=KSVAssess.assessMatch(S.savedSets.map(function(s){return KSVAssess.setFromTsv(setCols(s));})).label;
+  fm.innerHTML='<div><div class="set-card-num">Full Match</div><div class="set-card-score">'+fmLabel+' · '+fmSw+'–'+fmSl+' · '+(S.savedSets.length)+' set'+(S.savedSets.length===1?'':'s')+'</div></div><div class="set-card-arrow">›</div>';
   fm.addEventListener('click',openFullMatch);
   el.appendChild(fm);
   // Individual sets
   S.savedSets.forEach(function(s,idx){
     var d=document.createElement('div');d.className='set-card';
-    d.innerHTML='<div><div class="set-card-num">Set '+s.setNum+'</div><div class="set-card-score">'+s.myName+' <strong>'+s.myTotal+'</strong> – <strong>'+s.oppTotal+'</strong> '+s.oppName+'</div></div><div class="set-card-arrow">›</div>';
+    d.innerHTML='<div><div class="set-card-num">Set '+s.setNum+'</div><div class="set-card-score">'+s.myName+' <strong>'+s.myTotal+'</strong> – <strong>'+s.oppTotal+'</strong> '+s.oppName+'</div><div class="set-card-score" style="margin-top:2px">'+setAssessView(s).label+'</div></div><div class="set-card-arrow">›</div>';
     d.addEventListener('click',function(){openViewer(idx);});el.appendChild(d);
   });
 }
@@ -2276,9 +2466,9 @@ adjustFixedHeaderOffset();
   if(!/^#\/import\?/.test(location.hash))return;
   try{
     var params=new URLSearchParams(location.hash.replace(/^#\/import\?/,''));
-    var my=params.get('my')||'';
-    var opp=params.get('opp')||'';
-    var data=params.get('data')||'';
+    var my=decodeURIComponent(params.get('my')||'');
+    var opp=decodeURIComponent(params.get('opp')||'');
+    var data=decodeURIComponent(params.get('data')||'');
     if(!data)return;
     document.getElementById('inp-my').value=my;
     document.getElementById('inp-opp').value=opp;
@@ -2286,8 +2476,9 @@ adjustFixedHeaderOffset();
     importMatch();
     if(S.savedSets.length){
       openFullMatch();
+      openPresent();
     }
-  }catch(e){console.warn('URL import failed:',e);showScreen('setup');}
+  }catch(e){console.warn('URL import failed:',e);}
 })();
 </script>
 </body>
