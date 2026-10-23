@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:var(--font);font-size:var(--fs-body-m);color:var(--text);background:var(--bg);min-height:100vh;padding-bottom:40px;overflow-x:hidden}
-.app{padding:16px;max-width:680px;margin:0 auto;overflow-x:hidden}
+.app{padding:16px;max-width:680px;margin:0 auto;overflow-x:clip}
 .hidden{display:none!important}
 
 /* Setup */
@@ -319,6 +319,28 @@ details.assess-card[open]>summary::after{content:'▾'}
 .nav-arrow:disabled{opacity:0.25;cursor:default;pointer-events:none}
 #viewer-sticky-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:10px 16px 10px;border-bottom:0.5px solid var(--border2)}
 #viewer-body{padding-top:0} /* JS sets margin-top after measuring header */
+/* ── Phone tracker: fit scores + tallies + serve runs + action row on one screen ── */
+@media(max-width:899px){
+  #tracker-sticky-header{position:sticky;top:0;left:auto;right:auto;z-index:100;margin:-16px -16px 10px;padding:8px 16px 6px}
+  #tracker-sticky-header .scoreboard{margin-bottom:0;gap:6px}
+  #tracker-sticky-header .score-side{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;column-gap:8px;padding:6px 8px}
+  #tracker-sticky-header .team-name{flex:0 0 100%;margin-bottom:0;text-align:center}
+  #tracker-sticky-header .score-num{font-size:30px!important}
+  #tracker-sticky-header .serving-badge{margin-top:0;font-size:10px;padding:0 7px}
+  #tracker-sticky-header .run-indicator{margin-top:0;height:auto;font-size:11px}
+  #tracker-sticky-header .run-indicator:empty{display:none}
+  #tracker-sticky-header .vs{font-size:11px}
+  .cols{margin-bottom:12px}
+  .col-label{font-size:0;padding:0;height:0;border-bottom-width:3px;margin-bottom:6px}
+  .cat-btn{min-height:46px;padding:4px 10px;margin-bottom:4px}
+  .cat-btn.cat-sub,.cat-btn.cat-sub-opp{min-height:40px}
+  .cat-static{min-height:30px;padding:3px 10px;margin-bottom:4px}
+  .serve-section{margin-bottom:10px}
+  .serve-section-label{margin-bottom:2px}
+  .actions{margin-bottom:8px}
+  /* toast floats so it never pushes the buttons down */
+  #toast-area{position:fixed;left:16px;right:16px;bottom:12px;z-index:200;pointer-events:none}
+}
 @media(min-width:900px){
   :root{
     --fs-h1:56px;--fs-h2:32px;--fs-h3:24px;
@@ -734,8 +756,8 @@ details.assess-card[open]>summary::after{content:'▾'}
     'L|Given|1': 'a tight, error-filled set, but they had the offensive edge.',
     'L|Given|2': 'an error-filled set where they had the clear offensive edge.',
     'L|Given|3': 'we were dominated offensively.',
-    'L|Earned|1': 'we had the offensive edge, but our errors cost us the set.',
-    'L|Earned|2': 'our errors outweighed their offense and decided the set.',   // provisional
+    'L|Earned|1': 'our errors, more than their offense, decided the set.',
+    'L|Earned|2': 'our errors, more than their offense, decided the set.',   // provisional
     'L|Earned|3': 'our unusually inefficient play gave the set away.'
   };
   var CLEAN_MAX_ERRORS = 2; // provisional
@@ -757,12 +779,11 @@ details.assess-card[open]>summary::after{content:'▾'}
   }
 
   function source(s) {
-    var pg = s.P - s.OP;
-    if (s.A > s.B) return (s.P > s.OE || (s.P === s.OE && pg > 0)) ? 'Earned' : 'Given';
-    var d = s.UE - s.OP;
-    if (d > 2) return 'Earned';
-    if (d >= 0) return (s.OE - s.P >= 3) ? 'Given' : 'Earned';
-    return 'Given';
+    // The margin splits into a production gap (pg = P - OP) and an error gap (eg = OE - UE).
+    // Win: Earned if production is at least as big a part of the margin as errors (ties -> Earned).
+    // Loss: Earned only if our errors are a bigger part of the deficit than their production edge (ties -> Given).
+    var pg = s.P - s.OP, eg = s.OE - s.UE;
+    return s.A > s.B ? (pg >= eg ? 'Earned' : 'Given') : (pg > eg ? 'Earned' : 'Given');
   }
 
   function degree(s, src) {
@@ -829,6 +850,15 @@ details.assess-card[open]>summary::after{content:'▾'}
     var k = res + '|' + src + '|' + lvl, clean = s.UE <= CLEAN_MAX_ERRORS;
     t = BASE[k];
     if (k === 'W|Earned|2' && clean) t = 'an offensive edge sharpened by clean, efficient play.';
+    // provisional: the "sloppy" wording only applies when our errors exceeded their production (UE > OP); otherwise stay neutral
+    // Sentences may only claim what the attribution guarantees about production (pg = P - OP):
+    var pg = s.P - s.OP;
+    if (k === 'L|Earned|1' || k === 'L|Earned|2') {
+      if (pg > 0) t = 'we had the offensive edge, but our errors cost us the set.';
+      else if (pg === 0) t = 'production was even, but our errors decided the set.';
+    }
+    if ((k === 'W|Given|1' || k === 'W|Given|2') && pg >= 0) t = 'their errors, more than our offense, decided the set.';
+    if (k === 'W|Earned|1' && !(s.UE > s.OP)) t = 'a tight set that went down to the wire, and we earned the win.';
     if (k === 'W|Earned|3') {
       if (s.aces >= ACE_MIN) t = 'an exceptional offensive output amplified by overwhelming serving.';
       else if (clean) t = 'an exceptional offensive output amplified by clean, efficient play.';
@@ -881,11 +911,9 @@ function hide(id){document.getElementById(id).classList.add('hidden');}
 function adjustFixedHeaderOffset(){
   // On mobile (no 900px media query), headers are position:fixed — offset body content
   if(window.innerWidth>=900)return;
-  var th=document.getElementById('tracker-sticky-header');
+  // (tracker header is position:sticky on phones now, so it needs no offset)
   var vh=document.getElementById('viewer-sticky-header');
-  var tb=document.getElementById('tracker-body');
   var vb=document.getElementById('viewer-body');
-  if(th&&tb)tb.style.marginTop=(th.offsetHeight+16)+'px';
   if(vh&&vb)vb.style.marginTop=(vh.offsetHeight+16)+'px';
 }
 function showScreen(name){['screen-setup','screen-tracker','screen-viewer'].forEach(function(s){hide(s);});show('screen-'+name);window.scrollTo(0,0);setTimeout(adjustFixedHeaderOffset,0);}
