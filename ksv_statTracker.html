@@ -171,6 +171,11 @@ details.assess-card[open]>summary::after{content:'▾'}
 .assess-row .as-sc.win{color:#4CAF6A;font-weight:500}
 .assess-row .as-nm{font-size:var(--fs-body-m);font-weight:500;color:var(--text)}
 .assess-row .as-sn{font-size:var(--fs-body-s);color:var(--text2);margin-top:2px}
+.flag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.flag-chip{font-size:var(--fs-body-xs);line-height:1.2;padding:4px 9px;border-radius:999px;border:0.5px solid var(--border2);color:var(--text2);background:transparent;white-space:nowrap}
+.flag-chip.rec{border-color:#E0A030;color:#E0A030}
+.flag-chip::before{content:'⚑ ';font-size:10px}
+.assess-row .flag-row{margin-top:6px}
 
 /* Actions */
 .actions{display:flex;gap:6px;margin-bottom:10px}
@@ -753,8 +758,8 @@ details.assess-card[open]>summary::after{content:'▾'}
     'W|Earned|1': 'a sloppy set where our inefficiency kept them in it, but our offensive edge prevailed.',
     'W|Earned|2': 'we had the clear offensive edge.',
     'W|Earned|3': 'an exceptional offensive output.',
-    'L|Given|1': 'a tight, error-filled set, but they had the offensive edge.',
-    'L|Given|2': 'an error-filled set where they had the clear offensive edge.',
+    'L|Given|1': 'a tight set, but they had the offensive edge.',
+    'L|Given|2': 'they had the clear offensive edge.',
     'L|Given|3': 'we were dominated offensively.',
     'L|Earned|1': 'our errors, more than their offense, decided the set.',
     'L|Earned|2': 'our errors, more than their offense, decided the set.',   // provisional
@@ -779,11 +784,13 @@ details.assess-card[open]>summary::after{content:'▾'}
   }
 
   function source(s) {
-    // The margin splits into a production gap (pg = P - OP) and an error gap (eg = OE - UE).
+    // pg = P - OP (production gap), eg = OE - UE (error gap); margin = pg + eg.
     // Win: Earned if production is at least as big a part of the margin as errors (ties -> Earned).
-    // Loss: Earned only if our errors are a bigger part of the deficit than their production edge (ties -> Given).
+    // Loss: Given only if they out-produced us (pg < 0) AND most of their points were their own production
+    //       (our errors did not outweigh their offense: UE <= OP). Otherwise Earned: our errors decided it.
     var pg = s.P - s.OP, eg = s.OE - s.UE;
-    return s.A > s.B ? (pg >= eg ? 'Earned' : 'Given') : (pg > eg ? 'Earned' : 'Given');
+    if (s.A > s.B) return pg >= eg ? 'Earned' : 'Given';
+    return (pg < 0 && s.UE <= s.OP) ? 'Given' : 'Earned';
   }
 
   function degree(s, src) {
@@ -838,8 +845,12 @@ details.assess-card[open]>summary::after{content:'▾'}
                : 'a ' + cb.lead + '-point lead slipped away and cost us the set.'; // provisional wording
   }
 
+  function hasData(s) { return (s.P + s.OP + s.OE + s.UE) > 0; }
+
   /* Assess one set. Returns {result, attr, level, label, sentence}. Ties: result 'T', blanks, label 'Tie'. */
   function assessSet(s) {
+    // Score-only sets (no production or errors recorded) cannot be assessed.
+    if (!hasData(s)) return { result: s.A === s.B ? 'T' : (s.A > s.B ? 'W' : 'L'), attr: '', level: '', label: 'Not enough data', sentence: '', nodata: true };
     if (s.A === s.B) return { result: 'T', attr: '', level: '', label: 'Tie', sentence: '' };
     var res = s.A > s.B ? 'W' : 'L', src = source(s), lvl = degree(s, src), cb = comeback(s), lab, t;
     if (cb) {
@@ -864,6 +875,8 @@ details.assess-card[open]>summary::after{content:'▾'}
       else if (clean) t = 'an exceptional offensive output amplified by clean, efficient play.';
     }
     if (k === 'W|Given|3' && clean) t = 'clean, efficient play gave us the offensive edge, but their excessive errors drove the lopsided score.';
+    // provisional: a Given loss is "made worse by our errors" only when we gave away more than we received (UE > OE)
+    if (res === 'L' && src === 'Given' && s.UE > s.OE) t = t.replace(/\.$/, '') + ', made worse by our errors.';
     if (k === 'L|Given|3' && s.opp_aces >= ACE_MIN) t = 'we were dominated offensively, made worse by exceptionally poor serve reception.';
     return { result: res, attr: src, level: lvl, label: lab, sentence: lab + ': ' + t };
   }
@@ -873,14 +886,17 @@ details.assess-card[open]>summary::after{content:'▾'}
   /* Assess one match from ALL its saved sets (array of set input objects). */
   function assessMatch(sets) {
     var sw = 0, sl = 0, P = 0, OP = 0, OE = 0, pts = 0, marg = 0;
-    sets.forEach(function (s) { if (s.A > s.B) sw++; else if (s.A < s.B) sl++; P += s.P; OP += s.OP; OE += s.OE; pts += s.A; marg += s.A - s.B; });
-    if (sw === sl) return { result: 'T', strength: '', level: '', label: 'Tie', share: '', avgMargin: '' };
-    var res = sw > sl ? 'W' : 'L', share = (P - OP) / (P + OP), avg = marg / sets.length;
+    var used = 0;
+    // Results and margins use every set; production share and the 55% cap use only sets with recorded stats.
+    sets.forEach(function (s) { if (s.A > s.B) sw++; else if (s.A < s.B) sl++; marg += s.A - s.B; if (hasData(s)) { used++; P += s.P; OP += s.OP; OE += s.OE; pts += s.A; } });
+    if (!used) return { result: sw === sl ? 'T' : (sw > sl ? 'W' : 'L'), strength: '', level: '', label: 'Not enough data', share: '', avgMargin: '', used: 0, nodata: true };
+    if (sw === sl) return { result: 'T', strength: '', level: '', label: 'Tie', share: '', avgMargin: '', used: used };
+    var res = sw > sl ? 'W' : 'L', share = (P + OP) ? (P - OP) / (P + OP) : 0, avg = marg / sets.length;
     var strength = Math.abs(share) < 0.10 ? 'Even' : (share > 0 ? 'Superior' : 'Inferior');
     var lvl = Math.abs(sw - sl) === 1 ? 1 : (Math.abs(avg) >= 5 ? 3 : 2);
     if (res === 'W' && strength === 'Superior' && lvl === 3 && pts && OE / pts > 0.55) lvl = 2; // 55% cap
     return { result: res, strength: strength, level: lvl, label: MATCH_LABELS[res + '|' + strength][lvl - 1],
-             share: round(share, 3), avgMargin: round(avg, 1) };
+             share: round(share, 3), avgMargin: round(avg, 1), used: used };
   }
 
   /* Paste rows (tab-separated, no header). Set: Result, Attribution, Level, Label, Sentence.  Match: Strength, Level, Assessment, Production Share, Avg Set Margin. */
@@ -890,6 +906,123 @@ details.assess-card[open]>summary::after{content:'▾'}
   var api = { setRowTsv: setRowTsv, matchRowTsv: matchRowTsv, setFromTsv: setFromTsv, assessSet: assessSet, assessMatch: assessMatch, SET_LABELS: SET_LABELS, MATCH_LABELS: MATCH_LABELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.KSVAssess = api;
 })(this);
+</script>
+<script>
+/* KSV anomaly flags — compares a set (or match) to a team's referential ranges and returns signal codes
+   for the KSV Archive website.  Code format  side:stat:tier   e.g.  opp:oerr:rec
+     side  us | opp        (us = the home team, i.e. the tracker's "my team")
+     stat  pts kil blk ace oerr run | eAN eAO eSN eSO | ppct peff so
+           run = longest serve run of that side in the set (consecutive points scored while serving). Set-level only: no match flag.
+           oerr = points from the OTHER side's errors (the tracker's "Opponent errors" row, so opp:oerr = OUR errors)
+           eAN/eAO/eSN/eSO = errors COMMITTED by that side: attack-net, attack-out, serve-net, serve-out
+     tier  rec (above every recorded value) | ext (very high) | hi (high) | lo (low) | xlo (very low) | lrec (below every recorded value)
+   Works in a <script> (global KSVFlags) or Node (module.exports). */
+(function (root) {
+  'use strict';
+  var COUNT = ['kil', 'blk', 'ace', 'oerr', 'eAN', 'eAO', 'eSN', 'eSO'];
+  var RATE = ['ppct', 'peff', 'so'];
+  var ORDER = { rec: 5, lrec: 5, ext: 4, xlo: 4, hi: 3, lo: 3 };
+  function n(x) { var v = parseInt(x, 10); return isNaN(v) ? 0 : v; }
+  function runs(s) { return String(s || '').split(',').map(function (a) { return a.trim(); }).filter(function (a) { return /^\d+$/.test(a); }).map(Number); }
+  function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+
+  /* cols: the 28-column set row (strings or numbers). Returns { us:{stat:value}, opp:{…}, total } with only the stats that were recorded consistently. */
+  function statsFromCols(c) {
+    var v = []; for (var i = 0; i < 28; i++) v.push(n(c[i]));
+    var out = { us: {}, opp: {}, total: v[2] + v[14] };
+    if (v[4] + v[5] + v[6] + v[16] + v[17] + v[18] + v[7] + v[19] === 0) return out;   // score only
+    var P = v[4] + v[5] + v[6], OP = v[16] + v[17] + v[18];
+    var okUs = v[2] === P + v[7], okOpp = v[14] === OP + v[19];
+    function side(mine) {
+      var d = {}, tot = mine ? v[2] : v[14], k = mine ? v[4] : v[16], b = mine ? v[5] : v[17], a = mine ? v[6] : v[18];
+      var oe = mine ? v[7] : v[19], ue = mine ? v[19] : v[7], p = k + b + a, ok = mine ? okUs : okOpp;
+      d.pts = tot;
+      if (ok) {
+        d.kil = k; d.blk = b; d.ace = a; d.oerr = oe; if (tot) d.ppct = p / tot;
+        if (okUs && okOpp && tot) d.peff = (p - ue) / tot;
+      }
+      // errors committed BY this side, by type (only when the types account for the whole total)
+      var sub = mine ? v.slice(20, 25) : v.slice(8, 13);
+      if (ue > 0 && sum(sub) === ue && okUs && okOpp) { d.eAN = sub[0]; d.eAO = sub[1]; d.eSN = sub[2]; d.eSO = sub[3]; }
+      var own = runs(mine ? c[13] : c[25]);
+      if (own.length && String(c[0] || '') !== '') d.run = Math.max.apply(null, own);   // longest serve run (set-level only)
+      var oruns = runs(mine ? c[25] : c[13]);
+      if (oruns.length && String(c[0] || '') !== '') d.so = oruns.length / (oruns.length + sum(oruns));
+      return d;
+    }
+    out.us = side(true); out.opp = side(false);
+    return out;
+  }
+
+  /* Records compare the raw value (a record is a record whatever the set length); the softer tiers scale count
+     thresholds DOWN for short sets (a 15-point decider shouldn't need 12 kills to be "high"). */
+  function tierOf(value, t, f) {
+    if (!t || value === null || value === undefined) return null;
+    var s = f || 1;
+    if (value > t.max + 1e-9) return 'rec';
+    if (t.lrec !== null && t.lrec !== undefined && value < t.lrec - 1e-9) return 'lrec';
+    if (t.ext !== null && t.ext !== undefined && value >= t.ext * s - 1e-9) return 'ext';
+    if (t.hi !== null && t.hi !== undefined && value >= t.hi * s - 1e-9) return 'hi';
+    if (t.xlo !== null && t.xlo !== undefined && value <= t.xlo * s + 1e-9) return 'xlo';
+    if (t.lo !== null && t.lo !== undefined && value <= t.lo * s + 1e-9) return 'lo';
+    return null;
+  }
+  function scaleFor(total, stat) {
+    if (stat === 'pts' || stat === 'run' || RATE.indexOf(stat) >= 0) return 1;
+    return Math.max(0.5, Math.min(1, total / 36));
+  }
+  function flagsFrom(stats, table, scaled, emit) {
+    var codes = [];
+    ['us', 'opp'].forEach(function (side) {
+      Object.keys(stats[side]).forEach(function (stat) {
+        var t = table[side + '.' + stat]; if (!t) return;
+        var tier = tierOf(stats[side][stat], t, scaled ? scaleFor(stats.total, stat) : 1);
+        if (tier && (!emit || emit.indexOf(tier) >= 0)) codes.push({ side: side, stat: stat, tier: tier, value: stats[side][stat] });
+      });
+    });
+    codes.sort(function (a, b) { return (ORDER[b.tier] - ORDER[a.tier]); });
+    return codes;
+  }
+  function isTeam(name, ref) { return !!ref && String(name || '').trim().toUpperCase() === ref.team; }
+
+  function detectSet(cols, ref) { return ref ? flagsFrom(statsFromCols(cols), ref.set, true, ref.emit) : []; }
+  /* Match = per-set means (rates likewise) over the sets that have data; a stat counts only if recorded in every such set. */
+  function aggregateMatch(rows) {
+    var per = rows.map(statsFromCols).filter(function (s) { return Object.keys(s.us).length; });
+    if (per.length < 2) return null;
+    var agg = { us: {}, opp: {}, total: 0 };
+    ['us', 'opp'].forEach(function (side) {
+      COUNT.concat(RATE).forEach(function (k) {
+        var vals = per.filter(function (s) { return s[side][k] !== undefined; }).map(function (s) { return s[side][k]; });
+        if (vals.length >= 2 && vals.length === per.length) agg[side][k] = sum(vals) / vals.length;
+      });
+    });
+    return agg;
+  }
+  function detectMatch(rows, ref) {
+    if (!ref) return [];
+    var agg = aggregateMatch(rows);
+    return agg ? flagsFrom(agg, ref.match, false, ref.emit) : [];
+  }
+  function codeString(list) { return list.map(function (f) { return f.side + ':' + f.stat + ':' + f.tier; }).join(';'); }
+
+  var NAME = { kil: 'kills', blk: 'blocks', ace: 'aces', pts: 'points', ppct: 'production %', peff: 'production eff.', so: 'sideout %',
+    run: 'longest serve run', eAN: 'attack-net errors', eAO: 'attack-out errors', eSN: 'serve-net errors', eSO: 'serve-out errors' };
+  var TIER = { rec: 'record high', lrec: 'record low', ext: 'very high', xlo: 'very low', hi: 'high', lo: 'low' };
+  function chipText(f) {
+    var who = f.side === 'us' ? 'Our' : 'Their', stat;
+    if (f.stat === 'oerr') stat = f.side === 'us' ? 'Their errors' : 'Our errors';       // errors the other side gave this side
+    else if (/^e[AS][NO]$/.test(f.stat)) stat = who + ' ' + NAME[f.stat];
+    else stat = who + ' ' + NAME[f.stat];
+    var val = RATE.indexOf(f.stat) >= 0 ? Math.round(f.value * 100) + '%' : (Math.round(f.value * 10) / 10);
+    return stat + ': ' + TIER[f.tier] + ' (' + val + ')';
+  }
+  var api = { aggregateMatch: aggregateMatch, flagsFrom: flagsFrom, statsFromCols: statsFromCols, detectSet: detectSet, detectMatch: detectMatch, codeString: codeString, chipText: chipText, isTeam: isTeam };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.KSVFlags = api;
+})(this);
+
+/* Referential ranges (WGAH) — built from 177 sets / 45 matches (2026-10-28). Replace this block to update. emit = which tiers are exported as flags. */
+var KSV_REFS=[{"team":"WGAH","emit":["rec","lrec","ext","xlo"],"set":{"us.pts":{"n":176,"med":21,"lo":null,"xlo":null,"hi":null,"ext":null,"max":25,"min":6,"lrec":null},"us.kil":{"n":176,"med":8,"lo":4,"xlo":null,"hi":13,"ext":15,"max":15,"min":3,"lrec":3},"us.blk":{"n":176,"med":1,"lo":null,"xlo":null,"hi":3,"ext":4,"max":4,"min":0,"lrec":null},"us.ace":{"n":176,"med":2,"lo":null,"xlo":null,"hi":7,"ext":8,"max":10,"min":0,"lrec":null},"us.oerr":{"n":176,"med":7,"lo":3,"xlo":1,"hi":12,"ext":13,"max":13,"min":0,"lrec":0},"us.run":{"n":65,"med":4,"lo":null,"xlo":null,"hi":8,"ext":8,"max":10,"min":2,"lrec":null},"us.eAN":{"n":49,"med":4,"lo":null,"xlo":null,"hi":8,"ext":9,"max":10,"min":0,"lrec":null},"us.eAO":{"n":49,"med":2,"lo":null,"xlo":null,"hi":4,"ext":null,"max":5,"min":0,"lrec":null},"us.eSN":{"n":49,"med":2,"lo":null,"xlo":null,"hi":6,"ext":null,"max":6,"min":0,"lrec":null},"us.eSO":{"n":49,"med":1,"lo":null,"xlo":null,"hi":3,"ext":null,"max":3,"min":0,"lrec":null},"us.ppct":{"n":176,"med":0.62,"lo":0.43,"xlo":0.38,"hi":0.79,"ext":0.86,"max":1,"min":0.3333,"lrec":0.3333},"us.peff":{"n":126,"med":0.16,"lo":-0.17,"xlo":-0.39,"hi":0.43,"ext":0.62,"max":0.7333,"min":-0.6429,"lrec":-0.6429},"us.so":{"n":65,"med":0.35,"lo":0.3,"xlo":0.27,"hi":0.43,"ext":0.47,"max":0.5,"min":0.25,"lrec":0.25},"opp.pts":{"n":176,"med":17,"lo":null,"xlo":null,"hi":null,"ext":null,"max":24,"min":4,"lrec":null},"opp.kil":{"n":126,"med":6,"lo":1,"xlo":null,"hi":10,"ext":12,"max":14,"min":1,"lrec":1},"opp.blk":{"n":126,"med":0,"lo":null,"xlo":null,"hi":2,"ext":3,"max":3,"min":0,"lrec":null},"opp.ace":{"n":126,"med":1,"lo":null,"xlo":null,"hi":5,"ext":6,"max":10,"min":0,"lrec":null},"opp.oerr":{"n":126,"med":8,"lo":3,"xlo":2,"hi":14,"ext":15,"max":17,"min":2,"lrec":2},"opp.run":{"n":65,"med":4,"lo":null,"xlo":null,"hi":8,"ext":8,"max":11,"min":2,"lrec":null},"opp.eAN":{"n":49,"med":2,"lo":null,"xlo":null,"hi":7,"ext":null,"max":7,"min":0,"lrec":null},"opp.eAO":{"n":49,"med":2,"lo":null,"xlo":null,"hi":6,"ext":7,"max":7,"min":0,"lrec":null},"opp.eSN":{"n":49,"med":1,"lo":null,"xlo":null,"hi":4,"ext":null,"max":4,"min":0,"lrec":null},"opp.eSO":{"n":49,"med":1,"lo":null,"xlo":null,"hi":3,"ext":4,"max":5,"min":0,"lrec":null},"opp.ppct":{"n":126,"med":0.48,"lo":0.28,"xlo":0.21,"hi":0.66,"ext":0.76,"max":0.8571,"min":0.1765,"lrec":0.1765},"opp.peff":{"n":126,"med":0,"lo":-0.36,"xlo":-0.73,"hi":0.33,"ext":0.51,"max":0.619,"min":-1.5,"lrec":-1.5},"opp.so":{"n":65,"med":0.33,"lo":0.28,"xlo":0.23,"hi":0.39,"ext":0.42,"max":0.4545,"min":0.2222,"lrec":0.2222}},"match":{"us.kil":{"n":45,"med":8.33,"lo":5.67,"xlo":5.24,"hi":10.72,"ext":11.79,"max":12.75,"min":5,"lrec":5},"us.blk":{"n":45,"med":0.67,"lo":null,"xlo":null,"hi":1.25,"ext":1.93,"max":4,"min":0,"lrec":null},"us.ace":{"n":45,"med":2.33,"lo":null,"xlo":null,"hi":4.93,"ext":6.22,"max":6.3333,"min":0.3333,"lrec":null},"us.oerr":{"n":45,"med":7.33,"lo":5.33,"xlo":4.55,"hi":9.15,"ext":11.57,"max":12,"min":4.2,"lrec":4.2},"us.ppct":{"n":45,"med":0.62,"lo":0.51,"xlo":0.44,"hi":0.74,"ext":0.77,"max":0.782,"min":0.4286,"lrec":0.4286},"us.peff":{"n":31,"med":0.13,"lo":-0.03,"xlo":-0.12,"hi":0.32,"ext":0.4,"max":0.4605,"min":-0.1743,"lrec":-0.1743},"opp.kil":{"n":31,"med":5.5,"lo":3,"xlo":2.5,"hi":7.75,"ext":8.38,"max":8.75,"min":2,"lrec":2},"opp.blk":{"n":31,"med":0.4,"lo":null,"xlo":null,"hi":0.8,"ext":1,"max":1,"min":0,"lrec":null},"opp.ace":{"n":31,"med":1.5,"lo":null,"xlo":null,"hi":2.8,"ext":3.61,"max":4.25,"min":0.25,"lrec":null},"opp.oerr":{"n":31,"med":8.75,"lo":6.67,"xlo":5.69,"hi":10.67,"ext":11.06,"max":11.25,"min":5.5,"lrec":5.5},"opp.ppct":{"n":31,"med":0.48,"lo":0.34,"xlo":0.33,"hi":0.56,"ext":0.64,"max":0.6976,"min":0.3134,"lrec":0.3134},"opp.peff":{"n":31,"med":0,"lo":-0.29,"xlo":-0.55,"hi":0.17,"ext":0.25,"max":0.3952,"min":-0.6389,"lrec":-0.6389}},"version":"2026-10-28-draft"}];
 </script>
 <script>
 var ERRORS=['atk-out','atk-net','srv-out','srv-net','other'];
@@ -1563,12 +1696,22 @@ function setCols(s){
     (s.oppFailedSideouts||[]).join(',')
   ];
 }
-/* Set row for Copy plain text: the 28 columns plus 5 assessment columns (Result, Attribution, Level, Label, Sentence).
+/* Set row for Copy plain text: the 28 columns plus 6 assessment columns (Result, Attribution, Level, Label, Sentence, Flags).
    The assessment is derived from the stats at copy time — never stored on the saved set. */
+/* Anomaly flags: compared to the home team's referential ranges (only for teams that have one — currently WGAH). */
+function refFor(name){for(var i=0;i<KSV_REFS.length;i++)if(KSVFlags.isTeam(name,KSV_REFS[i]))return KSV_REFS[i];return null;}
+function setFlags(s){return KSVFlags.detectSet(setCols(s),refFor(s.myName));}
+function matchFlags(sets){return sets.length?KSVFlags.detectMatch(sets.map(setCols),refFor(sets[0].myName)):[];}
+function flagChips(list,max){
+  if(!list.length)return '';
+  var shown=list.slice(0,max||3).map(function(f){return '<span class="flag-chip'+(f.tier==='rec'||f.tier==='lrec'?' rec':'')+'">'+KSVFlags.chipText(f)+'</span>';}).join('');
+  var more=list.length>(max||3)?'<span class="flag-chip">+'+(list.length-(max||3))+' more</span>':'';
+  return '<div class="flag-row">'+shown+more+'</div>';
+}
 function setRowWithAssessment(s){
   var cols=setCols(s);
   var a=KSVAssess.assessSet(KSVAssess.setFromTsv(cols));
-  return cols.join('\t')+'\t'+KSVAssess.setRowTsv(a);
+  return cols.join('\t')+'\t'+KSVAssess.setRowTsv(a)+'\t'+KSVFlags.codeString(setFlags(s));
 }
 
 function copySetTSV(){
@@ -1582,6 +1725,7 @@ function sentenceCase(l){return l?l.charAt(0)+l.slice(1).toLowerCase():'';}
 function assessClass(r){return r==='W'?'win':(r==='L'?'loss':'');}
 function setAssessView(s){
   var a=KSVAssess.assessSet(KSVAssess.setFromTsv(setCols(s)));
+  if(a.nodata)return{res:'',label:sentenceCase(a.label),text:'Only the score was recorded for this set.',nodata:true};
   return{res:a.result,label:sentenceCase(a.label),text:a.sentence?a.sentence.slice(a.label.length+2):''};
 }
 function renderSetAssessment(s){
@@ -1589,20 +1733,21 @@ function renderSetAssessment(s){
   document.getElementById('viewer-assess').innerHTML=
     '<div class="vis-sub-label">Assessment</div>'
     +'<div class="assess-card '+assessClass(x.res)+'"><div class="assess-title">'+x.label+'</div>'
-    +(x.text?'<div class="assess-sent">'+x.text+'</div>':'')+'</div>';
+    +(x.text?'<div class="assess-sent">'+x.text+'</div>':'')+flagChips(setFlags(s),4)+'</div>';
 }
 function renderMatchAssessment(sets){
   var m=KSVAssess.assessMatch(sets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
   var rows=sets.map(function(s){
     var x=setAssessView(s);
     return '<div class="assess-row"><div class="as-set">'+s.setNum+'</div>'
-      +'<div class="as-sc '+assessClass(x.res)+'">'+s.myTotal+'–'+s.oppTotal+'</div>'
-      +'<div><div class="as-nm">'+x.label+'</div>'+(x.text?'<div class="as-sn">'+x.text+'</div>':'')+'</div></div>';
+      +'<div class="as-sc '+(s.myTotal>s.oppTotal?'win':'')+'">'+s.myTotal+'–'+s.oppTotal+'</div>'
+      +'<div><div class="as-nm">'+x.label+'</div>'+(x.text?'<div class="as-sn">'+x.text+'</div>':'')+flagChips(setFlags(s),3)+'</div></div>';
   }).join('');
   document.getElementById('viewer-assess').innerHTML=
     '<div class="vis-sub-label">Assessment</div>'
-    +'<details class="assess-card '+assessClass(m.result)+'"><summary class="assess-title">'+m.label+'</summary>'
-    +'<div class="assess-head"><div>Set</div><div>Score</div><div>Assessment</div></div>'+rows+'</details>';
+    +'<details class="assess-card '+(m.nodata?'':assessClass(m.result))+'"><summary class="assess-title">'+m.label+'</summary>'
+    +flagChips(matchFlags(sets),4)+'<div class="assess-head"><div>Set</div><div>Score</div><div>Assessment</div></div>'+rows
+    +(m.used<sets.length?'<div class="assess-sent" style="margin-top:8px">The match rating uses '+m.used+' of '+sets.length+' sets; the rest have only a score.</div>':'')+'</details>';
 }
 
 /* Match assessment row (Strength, Level, Assessment) from all saved sets. */
@@ -1610,7 +1755,8 @@ function copyMatchAssessment(){
   var n=S.savedSets.length;
   if(!n){showToast('No sets to copy');return;}
   var a=KSVAssess.assessMatch(S.savedSets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
-  copyToClipboard(KSVAssess.matchRowTsv(a),'btn-copy-match-assess','Copied ('+n+' set'+(n===1?'':'s')+')');
+  var lbl=a.used<n?'Copied ('+a.used+' of '+n+' sets)':'Copied ('+n+' set'+(n===1?'':'s')+')';
+  copyToClipboard(KSVAssess.matchRowTsv(a)+'\t'+KSVFlags.codeString(matchFlags(S.savedSets)),'btn-copy-match-assess',lbl);
 }
 
 /* ══════════════ openViewer ══════════════ */
