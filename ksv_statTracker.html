@@ -171,6 +171,7 @@ details.assess-card[open]>summary::after{content:'▾'}
 .assess-row .as-sc.win{color:#4CAF6A;font-weight:500}
 .assess-row .as-nm{font-size:var(--fs-body-m);font-weight:500;color:var(--text)}
 .assess-row .as-sn{font-size:var(--fs-body-s);color:var(--text2);margin-top:2px}
+.assess-ver{font-size:var(--fs-body-xs);color:var(--text2);opacity:.7;margin-top:8px}
 .flag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .flag-chip{font-size:var(--fs-body-xs);line-height:1.2;padding:4px 9px;border-radius:999px;border:0.5px solid var(--border2);color:var(--text2);background:transparent;white-space:nowrap}
 .flag-chip.rec{border-color:#E0A030;color:#E0A030}
@@ -785,11 +786,12 @@ details.assess-card[open]>summary::after{content:'▾'}
 
   function source(s) {
     // pg = P - OP (production gap), eg = OE - UE (error gap); margin = pg + eg.
-    // Win: Earned if production is at least as big a part of the margin as errors (ties -> Earned).
+    // Win: Earned if production is at least as big a part of the margin as errors (ties -> Earned),
+    //      OR if our production beat the errors they gave us AND we did not get out-produced (P > OE and pg >= 0).
     // Loss: Given only if they out-produced us (pg < 0) AND most of their points were their own production
     //       (our errors did not outweigh their offense: UE <= OP). Otherwise Earned: our errors decided it.
     var pg = s.P - s.OP, eg = s.OE - s.UE;
-    if (s.A > s.B) return pg >= eg ? 'Earned' : 'Given';
+    if (s.A > s.B) return (pg >= eg || (s.P > s.OE && pg >= 0)) ? 'Earned' : 'Given';
     return (pg < 0 && s.UE <= s.OP) ? 'Given' : 'Earned';
   }
 
@@ -1698,6 +1700,14 @@ function setCols(s){
 }
 /* Set row for Copy plain text: the 28 columns plus 6 assessment columns (Result, Attribution, Level, Label, Sentence, Flags).
    The assessment is derived from the stats at copy time — never stored on the saved set. */
+/* Assessment RULES version (not the app build): bump only when a rule, threshold, sentence template or label table changes.
+   Format <major>.<minor>-<origin> (rules date); origin = tracker | archive. Spec: ksv-assessment-process_v3.0-archive_2026-11-25.md
+   Changelog:
+   3.0-archive (2026-11-25) win Earned also if P>OE and pg>=0 (only source() for wins changes). Made in the archive project.
+   2.0-tracker (2026-10-28) win Earned if pg>=eg; loss Given only if pg<0 and UE<=OP; "Not enough data" for score-only sets;
+                            sentence-truthfulness overrides incl. "made worse by our errors" (Given loss, UE>OE); match row = 3 cols + Flags.
+   1.0-archive (2026-10-14) original handoff (superseded). */
+var ASSESS_VERSION='3.0-archive (2026-11-25)';
 /* Anomaly flags: compared to the home team's referential ranges (only for teams that have one — currently WGAH). */
 function refFor(name){for(var i=0;i<KSV_REFS.length;i++)if(KSVFlags.isTeam(name,KSV_REFS[i]))return KSV_REFS[i];return null;}
 function setFlags(s){return KSVFlags.detectSet(setCols(s),refFor(s.myName));}
@@ -1733,7 +1743,7 @@ function renderSetAssessment(s){
   document.getElementById('viewer-assess').innerHTML=
     '<div class="vis-sub-label">Assessment</div>'
     +'<div class="assess-card '+assessClass(x.res)+'"><div class="assess-title">'+x.label+'</div>'
-    +(x.text?'<div class="assess-sent">'+x.text+'</div>':'')+flagChips(setFlags(s),4)+'</div>';
+    +(x.text?'<div class="assess-sent">'+x.text+'</div>':'')+flagChips(setFlags(s),4)+'<div class="assess-ver">Assessment rules '+ASSESS_VERSION+'</div></div>';
 }
 function renderMatchAssessment(sets){
   var m=KSVAssess.assessMatch(sets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
@@ -1747,7 +1757,7 @@ function renderMatchAssessment(sets){
     '<div class="vis-sub-label">Assessment</div>'
     +'<details class="assess-card '+(m.nodata?'':assessClass(m.result))+'"><summary class="assess-title">'+m.label+'</summary>'
     +flagChips(matchFlags(sets),4)+'<div class="assess-head"><div>Set</div><div>Score</div><div>Assessment</div></div>'+rows
-    +(m.used<sets.length?'<div class="assess-sent" style="margin-top:8px">The match rating uses '+m.used+' of '+sets.length+' sets; the rest have only a score.</div>':'')+'</details>';
+    +(m.used<sets.length?'<div class="assess-sent" style="margin-top:8px">The match rating uses '+m.used+' of '+sets.length+' sets; the rest have only a score.</div>':'')+'<div class="assess-ver">Assessment rules '+ASSESS_VERSION+'</div></details>';
 }
 
 /* Match assessment row (Strength, Level, Assessment) from all saved sets. */
@@ -1755,7 +1765,7 @@ function copyMatchAssessment(){
   var n=S.savedSets.length;
   if(!n){showToast('No sets to copy');return;}
   var a=KSVAssess.assessMatch(S.savedSets.map(function(s){return KSVAssess.setFromTsv(setCols(s));}));
-  var lbl=a.used<n?'Copied ('+a.used+' of '+n+' sets)':'Copied ('+n+' set'+(n===1?'':'s')+')';
+  var lbl=(a.used<n?'Copied ('+a.used+' of '+n+' sets)':'Copied ('+n+' set'+(n===1?'':'s')+')')+' · v'+ASSESS_VERSION.split(' ')[0];
   copyToClipboard(KSVAssess.matchRowTsv(a)+'\t'+KSVFlags.codeString(matchFlags(S.savedSets)),'btn-copy-match-assess',lbl);
 }
 
